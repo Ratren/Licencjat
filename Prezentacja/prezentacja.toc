@@ -1,0 +1,6 @@
+\babel@toc {polish}{}\relax 
+\beamer@sectionintoc {1}{Wstęp}{3}{0}{1}
+\beamer@subsectionintoc {1}{1}{Cel projektu}{3}{0}{1}
+\beamer@subsectionintoc {1}{2}{Plan działania}{4}{0}{1}
+\beamer@sectionintoc {2}{Użyte technologie}{5}{0}{2}
+\beamer@subsectionintoc {2}{1}{aa}{6}{0}{2}
