@@ -1,144 +1,176 @@
 #include <CL/sycl.hpp>
-#include <algorithm>
 #include <cmath>
 #include <complex>
-#include <cstring>
-#include <iostream>
-#include <iterator>
-#include <random>
-
-using namespace cl::sycl;
-
+#include <cstddef>
+#include <cstdlib>
+#include <device_selector.hpp>
+#include <oneapi/dpl/random>
+#include <queue.hpp>
+#include <vector>
+#include <time.h>
+#include <fstream>
 #define J Complex(0.0, 1.0)
 
 typedef std::complex<double> Complex;
 
-void generate_bit_reversal_table(unsigned long num_bits,
-                                 unsigned long *bit_reversal_table) {
-  unsigned long tableSize = 1 << num_bits;
-  for (unsigned long i = 0; i < tableSize; ++i) {
-    unsigned long reversed = 0;
-    for (unsigned long j = 0; j < num_bits; ++j) {
-      if (i & (1 << j)) {
-        reversed |= (1 << (num_bits - 1 - j));
+std::vector<Complex> generate_input_array(size_t size) {
+
+  size_t chunkSize = size / 8;
+  uint32_t seed = std::time(0);
+  std::vector<Complex> array(size);
+
+  sycl::queue queue(sycl::cpu_selector{});
+
+  sycl::buffer<Complex, 1> buf(array.data(), sycl::range<1>(size));
+
+  for (size_t offset = 0; offset < size; offset += chunkSize) {
+    queue.submit([&](sycl::handler &cgh) {
+      auto acc = buf.get_access<sycl::access::mode::write>(cgh);
+      cgh.parallel_for<class generate_random>(
+          sycl::range<1>(chunkSize), [=](sycl::id<1> idx) {
+            size_t globalIdx = idx[0] + offset;
+            if (globalIdx < size) {
+              oneapi::dpl::minstd_rand engine(seed, globalIdx);
+              oneapi::dpl::uniform_real_distribution<double> distr;
+              acc[globalIdx] = Complex(distr(engine), 0.0);
+            }
+          });
+    });
+  }
+
+  queue.wait_and_throw();
+
+  return array;
+}
+
+void bit_reverse_indices(std::vector<Complex> *array_to_sort, size_t size) {
+  Complex *sorting_data = new Complex[size];
+
+  size_t chunkSize = size / 8;
+  std::copy(array_to_sort->data(), array_to_sort->data() + size, sorting_data);
+
+  sycl::queue queue(sycl::cpu_selector{});
+
+  sycl::buffer<Complex, 1> buf_from(sorting_data, sycl::range<1>(size));
+  sycl::buffer<Complex, 1> buf_to(array_to_sort->data(), sycl::range<1>(size));
+
+  for (size_t offset = 0; offset < size; offset += chunkSize) {
+    queue.submit([&](sycl::handler &cgh) {
+      auto from = buf_from.get_access<sycl::access::mode::read>(cgh);
+      auto to = buf_to.get_access<sycl::access::mode::write>(cgh);
+      int num_bits = std::log2(size);
+      cgh.parallel_for<class reverse_indices>(
+          sycl::range<1>(chunkSize), [=](sycl::id<1> idx) {
+            size_t globalIdx = idx[0] + offset;
+            if (globalIdx < size) {
+              int reversed = 0;
+              for (int j = 0; j < num_bits; j++) {
+                if (globalIdx & (1 << j)) {
+                  reversed |= (1 << (num_bits - 1 - j));
+                }
+              }
+              to[globalIdx] = from[reversed];
+            }
+          });
+    });
+  }
+
+  queue.wait();
+}
+
+void fft(std::vector<Complex> *input_array, size_t size) {
+
+  sycl::queue queue(sycl::cpu_selector{});
+
+  sycl::buffer<Complex, 1> buf(input_array->data(), sycl::range<1>(size));
+
+  int num_bits = std::log2(size);
+
+  for (size_t step = 1; step <= num_bits; ++step) {
+    const size_t step_size_outer = 1 << step;
+    if ((size / step_size_outer) >= 256) {
+      queue.submit([&](sycl::handler &cgh) {
+        const size_t step_size = 1 << step;
+        const Complex omega = std::pow(
+            std::exp(1), (2 * M_PI * J) / static_cast<double>(step_size));
+        auto acc = buf.get_access<sycl::access::mode::read_write>(cgh);
+        cgh.parallel_for<class fft_calculations>(
+            sycl::range<1>(size / step_size), [=](sycl::id<1> idx) {
+              size_t start = idx[0] * step_size;
+              for (size_t i = 0; i < step_size / 2; i++) {
+                size_t index_even = start + i;
+                size_t index_odd = start + i + step_size / 2;
+                Complex temp = acc[index_even];
+                acc[index_even] = temp + std::pow(omega, i) * acc[index_odd];
+                acc[index_odd] = temp - std::pow(omega, i) * acc[index_odd];
+              }
+            });
+      });
+    } else {
+      for (size_t start = 0; start < size; start += step_size_outer) {
+        queue.submit([&](sycl::handler &cgh) {
+          const size_t step_size = step_size_outer;
+          const Complex omega =
+              std::pow(std::exp(1),
+                       (2 * M_PI * J) / static_cast<double>(step_size_outer));
+          auto acc = buf.get_access<sycl::access::mode::read_write>(cgh);
+          cgh.parallel_for<class fft_calculations_small_size>(
+              sycl::range<1>(step_size / 2), [=](sycl::id<1> idx) {
+                size_t index_even = start + idx[0];
+                size_t index_odd = start + idx[0] + step_size / 2;
+                Complex temp = acc[index_even];
+                acc[index_even] = temp + std::pow(omega, idx[0]) * acc[index_odd];
+                acc[index_odd] = temp - std::pow(omega, idx[0]) * acc[index_odd];
+              });
+        });
       }
     }
-    bit_reversal_table[i] = reversed;
+
+    queue.wait();
   }
 }
 
-Complex *generate_input_array(unsigned long size) {
-  Complex *input_array = new Complex[size];
-  std::random_device rd;
-  std::mt19937 gen(rd());
-  std::uniform_real_distribution<double> dis(0.0, 1.0);
+int main(int argc, char* argv[]) {
+    
+  std::vector<Complex> array;
+  size_t size = std::pow(2,29);
 
-  for (unsigned long i = 0; i < size; ++i) {
-    double real_part = dis(gen);
-    input_array[i] = Complex(real_part, 0);
-  }
 
-  return input_array;
-}
-//
-//                    [0, 1, 2, 3, 4, 5, 6, 7]
-//                [0, 2, 4, 6]        [1, 3, 5, 7]
-//              [0, 4]    [2, 6]    [1, 5]    [3, 7]
-//
-//
-Complex *fft(Complex *input_array, unsigned long size) {
-
-  Complex *output_array = new Complex[size];
-  //  std::copy(input_array, input_array + size, output_array);
-
-  queue Q{cpu_selector{}};
-
-  Complex *unified_memory_array = malloc_shared<Complex>(size, Q);
-  std::copy(input_array, input_array + size, unified_memory_array);
-
-  long num_bits = static_cast<long>(std::log2(size));
-  unsigned long *bit_reversal_table = new unsigned long[1 << num_bits];
-  generate_bit_reversal_table(num_bits, bit_reversal_table);
-
-  for (unsigned long step = 1; step <= num_bits; ++step) {
-    unsigned long step_size = 1 << step;
-    Complex omega =
-        std::pow(std::exp(1), (2 * M_PI * J) / static_cast<double>(step_size));
-
-    for (unsigned long start = 0; start < size; start += step_size) {
-      //      for (unsigned long i = 0; i < step_size / 2; i++) {
-      //        unsigned long index_even = bit_reversal_table[start + i];
-      //        unsigned long index_odd = bit_reversal_table[start + i +
-      //        step_size / 2]; Complex temp = output_array[index_even];
-      //        output_array[index_even] = output_array[index_even] +
-      //                                   std::pow(omega, i) *
-      //                                   output_array[index_odd];
-      //        output_array[index_odd] =
-      //            temp - std::pow(omega, i) * output_array[index_odd];
-      //      }
-      Q.parallel_for(range<1>(step_size / 2), [=](id<1> i) {
-         unsigned long index_even = bit_reversal_table[start + i];
-         unsigned long index_odd =
-             bit_reversal_table[start + i + step_size / 2];
-         Complex temp = unified_memory_array[index_even];
-         unified_memory_array[index_even] =
-             unified_memory_array[index_even] +
-             std::pow(omega, i) * unified_memory_array[index_odd];
-         unified_memory_array[index_odd] =
-             temp - std::pow(omega, i) * unified_memory_array[index_odd];
-       }).wait();
+  if (argc == 2) {
+    std::string path = argv[1];
+    std::ifstream inputFile(path, std::ios::binary);
+    if (!inputFile.is_open()) {
+      std::cerr << "Error: Failed to open file for reading.\n";
+      return -1;
     }
+
+    inputFile.seekg(0, std::ios::end);
+    std::streampos fileSize = inputFile.tellg();
+    inputFile.seekg(0, std::ios::beg);
+
+    size = fileSize / sizeof(Complex);
+
+    array = std::vector<Complex>(size);
+    inputFile.read(reinterpret_cast<char*>(array.data()), fileSize);
+
+    inputFile.close();
+  } else {
+    array = generate_input_array(size);
   }
 
-  //for (long i = 0; i < size; i++) {
-  //  std::cout << std::abs(unified_memory_array[bit_reversal_table[i]]) << "; ";
-  //}
-  //std::cout << '\n';
+  bit_reverse_indices(&array, size);
 
-  std::cout << "done \n";
-  delete[] bit_reversal_table;
-  free(unified_memory_array, Q);
+  fft(&array, size);
 
-  return output_array;
-}
+  std::ofstream outputFile("output.dat", std::ios::binary);
+  if (!outputFile.is_open()) {
+    std::cerr << "Error: Failed to open file for writing.\n";
+    return -1;
+  }
 
-int main() {
-  unsigned long input_size = std::pow(2, 20);
+  outputFile.write(reinterpret_cast<const char*>(array.data()), array.size() * sizeof(Complex));
 
-  Complex *input_array = generate_input_array(input_size);
-
-  //  Complex *input_array = new Complex[16];
-  //  input_array[0] = static_cast<Complex>(0);
-  //  input_array[1] = static_cast<Complex>(1);
-  //  input_array[2] = static_cast<Complex>(2);
-  //  input_array[3] = static_cast<Complex>(3);
-  //  input_array[4] = static_cast<Complex>(4);
-  //  input_array[5] = static_cast<Complex>(5);
-  //  input_array[6] = static_cast<Complex>(6);
-  //  input_array[7] = static_cast<Complex>(7);
-  //  input_array[8] = static_cast<Complex>(8);
-  //  input_array[9] = static_cast<Complex>(9);
-  //  input_array[10] = static_cast<Complex>(10);
-  //  input_array[11] = static_cast<Complex>(11);
-  //  input_array[12] = static_cast<Complex>(12);
-  //  input_array[13] = static_cast<Complex>(13);
-  //  input_array[14] = static_cast<Complex>(14);
-  //  input_array[15] = static_cast<Complex>(15);
-
-  Complex *output_array = fft(input_array, input_size);
-
-  //  for (long i = 0; i < input_size; i++) {
-  //    std::cout << input_array[i] << '\t';
-  //  }
-  //  std::cout << '\n';
-
-  long num_bits = static_cast<long>(std::log2(input_size));
-  unsigned long *bit_reversal_table = new unsigned long[1 << num_bits];
-  generate_bit_reversal_table(num_bits, bit_reversal_table);
-
-
-  delete[] input_array;
-  delete[] bit_reversal_table;
+  outputFile.close();
 
   return 0;
 }

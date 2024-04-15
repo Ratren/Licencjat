@@ -7,8 +7,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 project(SYCL_Project LANGUAGES CXX)
 # Add your source files here
 set(SOURCES 
-    src/sycl_learning.cpp
+    src/generate_data.cpp
 )
 
 # Create the executable target
-add_executable(sycl_learning ${SOURCES})
+add_executable(generate_data ${SOURCES})
