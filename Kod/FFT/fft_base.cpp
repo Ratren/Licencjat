@@ -70,7 +70,7 @@ void fft(Complex *input_array, unsigned long size) {
 }
 
 int main(int argc, char *argv[]) {
-  unsigned long input_size = std::pow(2, 29);
+  unsigned long input_size = std::pow(2, 16);
   Complex *input_array;
 
   if (argc == 2) {
