@@ -195,12 +195,6 @@ int main(int argc, char **argv) {
 
     } else {
 
-      if (num_chunks == 8) {
-        MPI_Gatherv(local_array, sendcnts[rank], MPI_DOUBLE_COMPLEX, global_array,
-                    sendcnts, displs, MPI_DOUBLE_COMPLEX, root, MPI_COMM_WORLD);
-        delete[] local_array;
-      }
-
       for (int i = 0; i < num_procs - 1; ++i) {
         sendcnts[i] = (step_size / 2) / num_procs;
         displs[i] = i * ((step_size / 2) / num_procs);
@@ -209,38 +203,23 @@ int main(int argc, char **argv) {
           ((step_size / 2) / num_procs) + (step_size / 2) % num_procs;
       displs[num_procs - 1] = (num_procs - 1) * ((step_size / 2) / num_procs);
 
-      local_array = new Complex[sendcnts[rank]];
-      Complex *odd_array = new Complex[sendcnts[rank]];
       for (size_t start = 0; start < size; start += step_size) {
-
-        MPI_Scatterv(global_array + start, sendcnts, displs, MPI_DOUBLE_COMPLEX,
-                     local_array, sendcnts[rank], MPI_DOUBLE_COMPLEX, root,
-                     MPI_COMM_WORLD);
-
-        MPI_Scatterv(global_array + start + (step_size / 2), sendcnts, displs,
-                     MPI_DOUBLE_COMPLEX, odd_array, sendcnts[rank],
-                     MPI_DOUBLE_COMPLEX, root, MPI_COMM_WORLD);
-
+        MPI_Win_lock(MPI_LOCK_SHARED, rank, MPI_MODE_NOCHECK, win);
+        int global_i;
+        int index_even, index_odd;
         for (size_t i = 0; i < sendcnts[rank]; ++i) {
-          Complex temp = local_array[i];
-          Complex angle = std::pow(omega, i+displs[rank]);
-          local_array[i] = temp + angle * odd_array[i];
-          odd_array[i] = temp - angle * odd_array[i];
+          global_i = i + displs[rank];
+          index_even = start + global_i;
+          index_odd = start + global_i + step_size / 2;
+          Complex temp = global_array[index_even];
+          Complex angle = std::pow(omega, global_i);
+          global_array[index_even] = temp + angle * global_array[index_odd];
+          global_array[index_odd] = temp - angle * global_array[index_odd];
         }
-
-        MPI_Gatherv(local_array, sendcnts[rank], MPI_DOUBLE_COMPLEX,
-                    global_array + start, sendcnts, displs, MPI_DOUBLE_COMPLEX,
-                    root, MPI_COMM_WORLD);
-
-        MPI_Gatherv(odd_array, sendcnts[rank], MPI_DOUBLE_COMPLEX,
-                    global_array + start + (step_size / 2), sendcnts, displs,
-                    MPI_DOUBLE_COMPLEX, root, MPI_COMM_WORLD);
+        MPI_Win_unlock(rank, win);
       }
 
-      delete[] local_array;
-      delete[] odd_array;
     }
-
     //MPI_Barrier(MPI_COMM_WORLD);
   }
 
