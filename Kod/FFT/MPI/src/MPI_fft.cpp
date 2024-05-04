@@ -127,10 +127,6 @@ int main(int argc, char **argv) {
     inputFile.read(reinterpret_cast<char *>(global_array), fileSize);
 
     inputFile.close();
-
-    for (int i=0; i<20; ++i) {
-      std::cout << global_array[i] << '\t';
-    }
   }
 
   // init_random_values(global_array, size, rank, root, num_procs);
@@ -138,48 +134,53 @@ int main(int argc, char **argv) {
   bit_reverse_indices(win, global_array, size, rank, root, num_procs, num_bits);
 
   MPI_Barrier(MPI_COMM_WORLD);
+
+  int* sendcnts = new int[num_procs]();
+  int* displs = new int[num_procs]();
+  for (int i = 0; i < num_procs; ++i) {
+    sendcnts[i] = 0;
+    displs[i] = 0;
+  }
+  int closest_pow_2_num_procs = 1;
+  while (closest_pow_2_num_procs < num_procs) {
+    closest_pow_2_num_procs <<= 1;
+  }
+  size_t base_num = size / closest_pow_2_num_procs;
+  size_t additional =
+      (size - base_num * num_procs) / (closest_pow_2_num_procs >> 1);
+
+  for (int i = 0; i < num_procs; ++i) {
+    sendcnts[i] = base_num;
+    if (i < (closest_pow_2_num_procs >> 1)) {
+      sendcnts[i] += additional;
+    }
+    for (int j = i + 1; j < num_procs; ++j) {
+      displs[j] += sendcnts[i];
+    }
+  }
+
+  Complex *local_array = new Complex[sendcnts[rank]]();
+
+  MPI_Scatterv(global_array, sendcnts, displs, MPI_DOUBLE_COMPLEX,
+               local_array, sendcnts[rank], MPI_DOUBLE_COMPLEX, root,
+               MPI_COMM_WORLD);
   for (size_t step = 1; step <= num_bits; ++step) {
     size_t step_size = 1 << step;
     Complex omega = std::exp((2 * M_PI * J) / static_cast<double>(step_size));
     size_t num_chunks = size / step_size;
 
     if (rank == 0) {
+      /*
       for (int i=0; i<20; ++i) {
         std::cout << global_array[i] << '\t';
       }
       std::cout << "\n\n";
+      */
+
+      std::cout << step << '\n';
     }
 
-    MPI_Barrier(MPI_COMM_WORLD);
     if (num_chunks >= 16) {
-      int sendcnts[num_procs], displs[num_procs];
-      for (int i = 0; i < num_procs; ++i) {
-        sendcnts[i] = 0;
-        displs[i] = 0;
-      }
-      int closest_pow_2_num_procs = 1;
-      while (closest_pow_2_num_procs < num_procs) {
-        closest_pow_2_num_procs <<= 1;
-      }
-      size_t base_num = size / closest_pow_2_num_procs;
-      size_t additional =
-          (size - base_num * num_procs) / (closest_pow_2_num_procs >> 1);
-
-      for (int i = 0; i < num_procs; ++i) {
-        sendcnts[i] = base_num;
-        if (i < (closest_pow_2_num_procs >> 1)) {
-          sendcnts[i] += additional;
-        }
-        for (int j = i + 1; j < num_procs; ++j) {
-          displs[j] += sendcnts[i];
-        }
-      }
-
-      Complex *local_array = new Complex[sendcnts[rank]];
-
-      MPI_Scatterv(global_array, sendcnts, displs, MPI_DOUBLE_COMPLEX,
-                   local_array, sendcnts[rank], MPI_DOUBLE_COMPLEX, root,
-                   MPI_COMM_WORLD);
 
       for (size_t start = 0; start < sendcnts[rank]; start += step_size) {
         for (size_t i = 0; i < step_size / 2; i++) {
@@ -192,17 +193,13 @@ int main(int argc, char **argv) {
         }
       }
 
-      MPI_Barrier(MPI_COMM_WORLD);
-
-      MPI_Gatherv(local_array, sendcnts[rank], MPI_DOUBLE_COMPLEX, global_array,
-                  sendcnts, displs, MPI_DOUBLE_COMPLEX, root, MPI_COMM_WORLD);
-
-      delete[] local_array;
-
     } else {
 
-      int *sendcnts = new int[num_procs];
-      int *displs = new int[num_procs];
+      if (num_chunks == 8) {
+        MPI_Gatherv(local_array, sendcnts[rank], MPI_DOUBLE_COMPLEX, global_array,
+                    sendcnts, displs, MPI_DOUBLE_COMPLEX, root, MPI_COMM_WORLD);
+        delete[] local_array;
+      }
 
       for (int i = 0; i < num_procs - 1; ++i) {
         sendcnts[i] = (step_size / 2) / num_procs;
@@ -212,12 +209,12 @@ int main(int argc, char **argv) {
           ((step_size / 2) / num_procs) + (step_size / 2) % num_procs;
       displs[num_procs - 1] = (num_procs - 1) * ((step_size / 2) / num_procs);
 
-      Complex *even_array = new Complex[sendcnts[rank]];
+      local_array = new Complex[sendcnts[rank]];
       Complex *odd_array = new Complex[sendcnts[rank]];
       for (size_t start = 0; start < size; start += step_size) {
 
         MPI_Scatterv(global_array + start, sendcnts, displs, MPI_DOUBLE_COMPLEX,
-                     even_array, sendcnts[rank], MPI_DOUBLE_COMPLEX, root,
+                     local_array, sendcnts[rank], MPI_DOUBLE_COMPLEX, root,
                      MPI_COMM_WORLD);
 
         MPI_Scatterv(global_array + start + (step_size / 2), sendcnts, displs,
@@ -225,13 +222,13 @@ int main(int argc, char **argv) {
                      MPI_DOUBLE_COMPLEX, root, MPI_COMM_WORLD);
 
         for (size_t i = 0; i < sendcnts[rank]; ++i) {
-          Complex temp = even_array[i];
+          Complex temp = local_array[i];
           Complex angle = std::pow(omega, i+displs[rank]);
-          even_array[i] = temp + angle * odd_array[i];
+          local_array[i] = temp + angle * odd_array[i];
           odd_array[i] = temp - angle * odd_array[i];
         }
 
-        MPI_Gatherv(even_array, sendcnts[rank], MPI_DOUBLE_COMPLEX,
+        MPI_Gatherv(local_array, sendcnts[rank], MPI_DOUBLE_COMPLEX,
                     global_array + start, sendcnts, displs, MPI_DOUBLE_COMPLEX,
                     root, MPI_COMM_WORLD);
 
@@ -240,12 +237,15 @@ int main(int argc, char **argv) {
                     MPI_DOUBLE_COMPLEX, root, MPI_COMM_WORLD);
       }
 
-      delete[] even_array;
+      delete[] local_array;
       delete[] odd_array;
     }
 
-    MPI_Barrier(MPI_COMM_WORLD);
+    //MPI_Barrier(MPI_COMM_WORLD);
   }
+
+  delete[] displs;
+  delete[] sendcnts;
 
   if (rank == 0) {
     std::ofstream outputFile("output.dat", std::ios::binary);
