@@ -1,0 +1,16 @@
+SEQUENTIAL
+5.92314e+35 53472933 283.16user 0.00system 4:43.17elapsed 99%CPU (0avgtext+0avgdata 3772maxresident)k
+0inputs+0outputs (0major+152minor)pagefaults 0swaps
+
+SYCL
+384.19user 0.13system 0:32.25elapsed 1191%CPU (0avgtext+0avgdata 191448maxresident)k
+0inputs+0outputs (6major+18063minor)pagefaults 0swaps
+
+MPI
+4.93589e+34 53461005 437.84user 1.56system 0:37.25elapsed 1179%CPU (0avgtext+0avgdata 34684maxresident)k
+8096inputs+0outputs (252major+24835minor)pagefaults 0swaps
+
+dist-ranges
+5.64567e+35 50967954
+378.42user 1.20system 0:32.71elapsed 1160%CPU (0avgtext+0avgdata 1169024maxresident)k
+5000inputs+0outputs (97major+21793minor)pagefaults 0swaps

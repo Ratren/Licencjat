@@ -4,7 +4,7 @@ set(CMAKE_CXX_COMPILER "icpx")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}-fsycl -O1 -std=c++17")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # Add the include directory to all targets
-project(CG_SYCL LANGUAGES CXX)
+project(SYCL_Project LANGUAGES CXX)
 # Add your source files here
 set(SOURCES 
     src/main.cpp

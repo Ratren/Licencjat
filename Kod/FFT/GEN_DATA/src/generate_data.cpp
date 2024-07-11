@@ -17,7 +17,7 @@ std::vector<Complex> generate_input_array(size_t size, uint32_t seed) {
   size_t chunkSize = size / 8;
   std::vector<Complex> array(size);
 
-  sycl::queue queue(sycl::cpu_selector{});
+  sycl::queue queue(sycl::cpu_selector_v);
 
   sycl::buffer<Complex, 1> buf(array.data(), sycl::range<1>(size));
 
@@ -51,7 +51,7 @@ int main(int argc, char* argv[]) {
   uint32_t seed = std::stoll(argv[2]);
   std::vector<Complex> array = generate_input_array(size, seed);
 
-  std::ofstream outputFile("test_data", std::ios::binary);
+  std::ofstream outputFile("../../../TEST_DATA/FFT_test_vector", std::ios::binary);
   if (!outputFile.is_open()) {
     std::cerr << "Error: Failed to open file for writing." << std::endl;
     return -1;
@@ -60,38 +60,5 @@ int main(int argc, char* argv[]) {
   outputFile.write(reinterpret_cast<const char*>(array.data()), array.size() * sizeof(Complex));
   outputFile.close();
   
-/*  
-  std::ifstream inputFile("test_data", std::ios::binary);
-  if (!inputFile.is_open()) {
-    std::cerr << "Error: Failed to open file for writing." << std::endl;
-    return -1;
-  }
-  
-  inputFile.seekg(0, std::ios::end);
-  std::streampos fileSize = inputFile.tellg();
-  inputFile.seekg(0, std::ios::beg);
-
-  size_t numComplexNumbers = fileSize / sizeof(Complex);
-
-  std::vector<Complex> array_2(numComplexNumbers);
-  inputFile.read(reinterpret_cast<char*>(array_2.data()), fileSize);
-
-  inputFile.close();
-  
-  for (size_t i = 0; i < 10; i++) {
-    std::cout << "Element " << i << ": " << array[i] << '\n'; 
-  }
-  std::cout << '\n';
-
-  for (size_t i = 0; i < 10; i++) {
-    std::cout << "Element " << i << ": " << array_2[i] << '\n'; 
-  }
-  std::cout << '\n';
-  
-*/
-
-
-
-
   return 0;
 }
