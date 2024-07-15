@@ -155,22 +155,21 @@ W tym podrozdziale wymienionych zostanie kilka podstawowych pojęć często uży
 
 \section{Taksonomia Flynna}
 Taksonomia Flynna to klasyfikacja systemów komputerowych zaproponowana przez Michaela J. Flynna w 1996 roku \cite{Flynn1966}. System klasyfikacji uwzględnia jako czynniki liczbę strumieni rozkazów oraz liczbę strumieni danych.
-W pierwotnej wersji Flynn opisał cztery klasy systemów komputerowych. Zaliczają się do nich:
+W pierwotnej wersji Flynn opisał cztery klasy systemów komputerowych. zaliczają się do nich:
 \begin{itemize}[topsep=1pt, itemsep=0.5pt]
-	\item Pojedynczy strumień rozkazów, pojedynczy strumień danych (ang. \emph{single instruction, single data, SISD}).
-	\item Pojedynczy strumień rozkazów, wiele strumieni danych (ang. \emph{single instruction, multiple data, SIMD}).
-	\item Wielokrotny strumień rozkazów, pojedynczy strumień danych (ang. \emph{multiple instruction, single data, MISD}).
-	\item Wielokrotny strumień rozkazów, wiele strumieni danych (ang. \emph{multiple instruction, multiple data, MIMD}).
+	\item pojedynczy strumień rozkazów, pojedynczy strumień danych (ang. \emph{single instruction, single data, SISD});
+	\item pojedynczy strumień rozkazów, wiele strumieni danych (ang. \emph{single instruction, multiple data, SIMD});
+	\item wielokrotny strumień rozkazów, pojedynczy strumień danych (ang. \emph{multiple instruction, single data, MISD});
+	\item wielokrotny strumień rozkazów, wiele strumieni danych (ang. \emph{multiple instruction, multiple data, MIMD}).
 \end{itemize}
-\newpage
 
 \subsection{SISD}
-W grupie SISD znajdują się komputery sekwencyjne, nie wykorzystujące zrównoleglenia w strumieniu danych, ani w strumieniu rozkazów. Pojedyncza jednostka sterująca przetwarza jeden strumień danych jednym rozkazem. W tej grupie znajdują się komputery w architekturze von Neumanna \cite{Neumann}. Przykładem systemów SISD mogą być wczesne komputery wykorzystujące jeden procesor (z jednym rdzeniem) do wykonywania wszystkich operacji.
-\begin{figure}[h]
+W grupie SISD znajdują się komputery sekwencyjne, nie wykorzystujące zrównoleglenia w strumieniu danych, ani w strumieniu rozkazów. Pojedyncza jednostka sterująca przetwarza jeden strumień danych jednym rozkazem. W tej grupie znajdują się komputery w architekturze von Neumanna \cite{Neumann}. Przykładem systemów SISD mogą być komputery wykorzystujące jeden procesor (z jednym rdzeniem) do wykonywania wszystkich operacji. Rysunek \ref{fig:sisd} obrazuje architekturę SISD w postaci diagramu.
+\begin{figure}
 	\centering
-	\includegraphics[scale=0.7]{assets/SISD.pdf}
-	\caption{Diagram SISD}
-	\label{SISD}
+	\includegraphics[scale=1]{assets/SISD.pdf}
+	\caption{Diagram SISD.}
+	\label{fig:sisd}
 \end{figure}
 
 \subsection{SIMD}
@@ -180,52 +179,52 @@ W komputerach z kategorii SIMD instrukcje mogą być wykonywane sekwencyjne lub 
 	\item Procesor potokowy (ang. \emph{Pipelined processor}) - jednostka obliczeniowa wykonuje instrukcje na fragmencie danych z centralnej jednostki pamięci i przetworzone dane zapisuje do tej samej jednostki.
 	\item Procesor asocjacyjny (ang. \emph{Associative processor}) - tego typu systemy otrzymują ten sam rozkaz, jednak każda jednostka obliczeniowa podejmuje niezależną decyzję odnośnie tego czy wykonać zadaną instrukcję, czy ją pominąć. Decyzja ta jest podejmowana na podstawie danych otrzymanych przez daną jednostkę.
 \end{itemize}
-Superkomputery wektorowe były głównymi reprezentantami kategorii SIMD. Bardzo popularnym przykładem jest Cray-1 \cite{Cray-1}, superkomputer z lat siedemdziesiątych który obecnie znajduje się w Muzeum Nauki w Londynie. W wielu współczesnych architekturach procesorów są dostępne instrukcje które wykonują operacje wektorowe.
-\begin{figure}[h]
+Superkomputery wektorowe były głównymi reprezentantami kategorii SIMD. Bardzo popularnym przykładem jest Cray-1 \cite{Cray-1}, superkomputer z lat siedemdziesiątych który obecnie znajduje się w Muzeum Nauki w Londynie. W wielu współczesnych architekturach procesorów są dostępne instrukcje które wykonują operacje wektorowe.Rysunek \ref{fig:simd} obrazuje architekturę SISD w postaci diagramu.
+\begin{figure}
 	\centering
-	\includegraphics[scale=0.7]{assets/SIMD.pdf}
-	\caption{Diagram SIMD}
-	\label{SIMD}
+	\includegraphics[scale=1]{assets/SIMD.pdf}
+	\caption{Diagram SIMD.}
+	\label{fig:simd}
 \end{figure}
-\newpage
 
 \subsection {MISD}
-MISD jest architekturą stosowaną niezwykle rzadko, gdyż jedynym jej zastosowaniem jest minimalizacja błędów poprzez wykonywanie tej samej instrukcji wielokrotnie. Dobrze znanym przypadkiem użycia jest komputer Wahadłowca Kosmicznego skonstruowanego przez NASA \cite{SpaceShuttle}.
-\begin{figure}[h]
+MISD jest architekturą stosowaną niezwykle rzadko, gdyż jedynym jej zastosowaniem jest minimalizacja błędów poprzez wykonywanie tej samej instrukcji wielokrotnie. Dobrze znanym przypadkiem użycia jest komputer Wahadłowca Kosmicznego skonstruowanego przez NASA \cite{SpaceShuttle}. Rysunek \ref{fig:misd} obrazuje architekturę SISD w postaci diagramu.
+\begin{figure}
 	\centering
-	\includegraphics[scale=0.7]{assets/MISD.pdf}
-	\caption{Diagram MISD}
-	\label{MISD}
+	\includegraphics[scale=1]{assets/MISD.pdf}
+	\caption{Diagram MISD.}
+	\label{fig:misd}
 \end{figure}
 
 \subsection {MIMD}
-MIMD to architektura pozwalająca na wykonywanie wielu instrukcji na wielu strumieniach danych. Jest to obecnie najbardziej popularna klasa komputerów. Nowoczesne komputery osobiste najczęściej posiadają wielo-rdzeniowe procesory które mają możliwość równoległego wykonywania różnych instrukcji na róznych zestawach danych.
-\begin{figure}[h]
+MIMD to architektura pozwalająca na wykonywanie wielu instrukcji na wielu strumieniach danych. Jest to obecnie najbardziej popularna klasa komputerów. Nowoczesne komputery osobiste najczęściej posiadają wielo-rdzeniowe procesory które mają możliwość równoległego wykonywania różnych instrukcji na róznych zestawach danych. Rysunek \ref{fig:mimd} obrazuje architekturę SISD w postaci diagramu.
+\begin{figure}
 	\centering
-	\includegraphics[scale=0.7]{assets/MIMD.pdf}
-	\caption{Diagram MIMD}
-	\label{MIMD}
+	\includegraphics[scale=1]{assets/MIMD.pdf}
+	\caption{Diagram MIMD.}
+	\label{fig:mimd}
 \end{figure}
 
-\newpage
 \section{Pamięć komputera}
 W systemach równoległych istnieją dwa modele organizacji pamięci:
 \begin{itemize}
 	\item Pamięć wspólna - wszystkie procesory w tym modelu mają dostęp do wspólnej przestrzeni adresowej. To rozwiązanie często może być wolniejsze poprzez jednoczesne próby dostępu do pamięci przez poszczególne jednostki. Dużą zaletą tego typu architektury jest łatwa komunikacja pomiędzy procesorami.
 	\item Pamięć rozproszona - każdy z procesorów w tym modelu posiada pamięć lokalną, a komunikacja między nimi zachodzi przez sieć. Zaletą tego rozwiązania jest duża skalowalność oraz brak problemu jednoczesnego dostępu do pamięci. Niestety, niedogodnością jest konieczność stosowania bardziej skomplikowanych mechanizmów komunikacji oraz często wyspecjalizowanych algorytmów stworzonych dokładnie do tego celu. Projekt przykłada dużą uwagę do rozwiązań umożliwiających wykorzystanie pamięci rozproszonej używając standardu MPI oraz biblioteki distributed-ranges.
 \end{itemize}
-Duże znaczenie we współczesnych systemach komputerowych odgrywają również różne rodzaje pamięci.
+Duże znaczenie we współczesnych systemach komputerowych odgrywają również różne rodzaje pamięci \cite{hierarchia-pamieci}.
 \begin{itemize}
 	\item Pamięć masowa/drugorzędna - pamięć długoterminowa zachowująca stan nawet po odłączeniu od źródła zasilania. Jest to najbardziej pojemny, ale i najwolniejszy rodzaj pamięci. W większości przypadków fizycznie znajduje się najdalej od procesora.
 	\item Pamięc operacyjna, pamięć o dostępie swobodnym (ang. \emph{Random Access Memory}, RAM) - rodzaj pamięci znajdujący się niedaleko procesora, aby umożliwić duże prędkości przesyłu danych. Ma mniejszą pojemność niż pamięć masowa.
-	\item Pamięć podręczna (ang. \emph{Cache memory}) - najszybsza pamięć, która przechowuje dane aktualnie przetwarzane przez procesor, fizycznie często jest zintegrowana bezpośrednio z procesorem. Ma ona małą pojemność.
+	\item Pamięć podręczna (ang. \emph{Cache memory}) - najszybsza pamięć, która przechowuje dane do których jest potrzebny bardzo szybki dostęp, fizycznie często jest zintegrowana bezpośrednio z procesorem. Ma ona małą pojemność i to z niej procesor pobiera dane do swoich rejestrów.
+	\item Rejestry procesora - jednostki pamięci na których bezpośrednio są wykonywane operacje.
 \end{itemize}
-W dzisiejszych czasach, rodzajem pamięci decydującym o prędkości wykonywanych operacji jest pamięć podręczna. Algorytmy oraz struktury danych, z których korzysta program, powinny być dobierane tak, aby zminimalizować konieczność częstego przenoszenia danych z RAM do pamięci podręcznej.
+W dzisiejszych czasach, rodzajem pamięci decydującym o prędkości wykonywanych operacji jest pamięć podręczna \cite{cache-memory}. Algorytmy oraz struktury danych, z których korzysta program, powinny być dobierane tak, aby zminimalizować konieczność częstego przenoszenia danych z RAM do pamięci podręcznej.
+Hierarchia pamięci została zwizualizowana na Rysunku \ref{fig:hierarchia_pamieci}.
 \begin{figure}[h]
 	\centering
-	\includegraphics[scale=0.9]{assets/hierarchia_pamieci.pdf}
-	\caption{Hierarchia pamięci}
-	\label{hierarchia_pamieci}
+	\includegraphics[scale=1]{assets/hierarchia_pamieci.pdf}
+	\caption{Hierarchia pamięci.}
+	\label{fig:hierarchia_pamieci}
 \end{figure}
 
 \chapter{Przegląd wykonanych testów}
@@ -241,7 +240,7 @@ Zakresy rozproszone (ang. \emph{Distributed Ranges}) to biblioteka języka C++ u
 \subsubsection{Ranges}
 Nagłówek \emph{<ranges>} zawiera kilka konceptów (ang. \emph{concept}) które są, w najprostszej swojej postaci, abstrakcją dowolnego, iterowalnego zbioru elementów posiadającego początek i koniec \cite{ranges}. kolekcja ta, aby spełnić bazową definicję \emph{range}, musi posiadać metody \emph{begin()} oraz \emph{end()}. W tabeli \ref{ranges_concepts} znajduje się krótki opis kilku konceptów z \emph{std::ranges} oraz informacja o tym które z najczęściej używanych struktur danych z STL (ang. \emph{Standard Template Library}, Standardowa biblioteka szablonów) spełniają dany koncept.
 \begin{table}[H]
-\begin{adjustbox}{max width=\textwidth}
+\begin{adjustbox}{max width=\textheight, angle=90, center}
 \begin{tabular}{|l|m{7cm}|ccccc|}
 \hline
 	& Opis & \texttt{std::forward\_list} & \texttt{std::list} & \texttt{std::deque} & \texttt{std::array} & \texttt{std::vector} \\
@@ -320,9 +319,9 @@ Aby porównać wydajność i łatwość w użyciu narzędzi opisanych w poprzedn
 \end{itemize}
 Problemy zostały dalej opisane w kolejności od najprostszego w implementacji do najtrudniejszego.
 \subsection{Całkowanie metodą Monte Carlo}
-Metodami Monte Carlo nazywamy techniki i algorytmy uzyskiwania wyników operacji numerycznych poprzez wielokrotne losowe próbkowanie. Głównym twórcą metody był polski fizyk Stanisław Ulam, który zainspirowany hazardowymi nawykami swojego wójka nadał jej nazwę pochodzącą od kasyna Monte Carlo w Monako.\cite{mc_beggining}
+Metodami Monte Carlo nazywamy techniki i algorytmy uzyskiwania wyników operacji numerycznych poprzez wielokrotne losowe próbkowanie. Głównym twórcą metody był polski fizyk Stanisław Ulam, który zainspirowany hazardowymi nawykami swojego wójka nadał jej nazwę pochodzącą od kasyna Monte Carlo w Monako \cite{mc_beggining}.
 Obliczanie całki tą metodą to bardzo prosta operacja. Wystarczy wylosować dostateczną ilość punktów z podanego zakresu aby zapewnić wysoką dokładność wyniku i dla każdego z nich sprawdzić czy znajduje się on pod wykresem sprawdzanej funkcji. Dokładność wyników otrzymanych przez użycie tej metody zależy w dużej mierze od parametrów wybranego generatora liczb pseudolosowych.
-W projekcie zdecydowałem się na obliczanie całki wielowymiarowej, co sprowadza się do obliczenia miary Jordana\cite{miara-jordana} n-wymiarowej przestrzeni pod funkcją. Jako zakres całkowania przyjąłem hipersześcian współdzielącym środek z układem współrzędnych. Zdecydowałem się na taki zabieg po to, aby zwiększyć ilość obliczeń, a tym samym czas wykonywania programu.
+W projekcie obliczana jest całka funkcji stu-wymiarowej, co sprowadza się do obliczenia miary Jordana\cite{miara-jordana} stu-wymiarowej przestrzeni pod funkcją. Jako zakres całkowania przyjąłem hipersześcian współdzielący środek z układem współrzędnych. Zdecydowałem się na taki zabieg po to, aby zwiększyć ilość obliczeń, a tym samym czas wykonywania programu. 
 \subsection{Metoda gradientu sprzężonego}
 Metoda gradientu sprzężonego (ang. \emph{conjugate gradient method}, CG) jest metodą numeryczną zaproponowaną w 1952 roku \cite{conjugate-gradient}, pozwalającą na rozwiązywanie układów równań liniowych w postaci $Ax = b$, których macierz $A$ spełnia następujące warunki:
 \begin{itemize}
@@ -332,12 +331,12 @@ Metoda gradientu sprzężonego (ang. \emph{conjugate gradient method}, CG) jest 
 
 Symetryczność macierzy jest cechą dobrze znaną, jednak aby przybliżyć cechę dodatniej określoności należy wprowadzić kilka pojęć.
 \begin{description}
-\item[Pojęcie 1] Forma kwadratowa to wielomian którego każda zmienna jest drugiego stopnia. Jej wzór można wyrazić w kilku formach. Jedną z nich jest
+\item[Pojęcie 1] Forma kwadratowa\cite{quadratic-form} to wielomian którego każda zmienna jest drugiego stopnia. Jej wzór można wyrazić w kilku formach. Jedną z nich jest
 $$f(x) = x^TAx,$$
 gdzie $A$ jest macierzą symetryczną zwaną macierzą formy kwadratowej $f$. Jeżeli przyjmiemy $A = [a_{ij}]$ to drugą formą jest
 $$f(x_1,x_2,\ldots,x_n) = \sum_{i=1}^n\sum_{j=1}^na_{ij}x_ix_j.$$
 
-\item[Pojęcie 2] Mówimy, że forma kwadratowa nad rzeczywistej przestrzeni liniowej V jest określona jeżeli przyjmuje wartości tego samego znaku oraz nie zeruje się dla wszystkich punktów $x$ przestrzeni liniowej. Dodatkowo spośród form określonych można wyróżnić:
+\item[Pojęcie 2] Mówimy, że forma kwadratowa nad rzeczywistą przestrzenią liniową $V$ jest określona, jeżeli przyjmuje wartości tego samego znaku oraz nie zeruje się dla wszystkich punktów $x$ tej przestrzeni liniowej. Dodatkowo spośród form określonych można wyróżnić:
 \begin{enumerate}
 \item $\forall x \in \mathbb{R}^n/\{0\}: f(x) > 0$ - formę dodatnio określoną, oraz
 \item $\forall x \in \mathbb{R}^n/\{0\}: f(x) < 0$ - formę ujemnie określoną.  
@@ -417,7 +416,7 @@ Wiedząc, że $\langle p_k, p_i \rangle_A = 0$ dla każdego $k \neq i$ możemy d
 $$p_k^Tb = \alpha_k\langle p_k, p_k\rangle_A,$$ 
 a więc
 $$ \alpha_k = \frac{\langle p_k, b \rangle }{\langle p_k, p_k \rangle_A}. $$
-Otrzymujemy w ten sposób metodę rozwiązywwania $Ax = b.$ Należy znaleźć ciąg $n$ sprzężonych kierunków po czym obliczyć wpółczynniki $\alpha_k.$
+Otrzymujemy w ten sposób metodę rozwiązywania $Ax = b.$ Należy znaleźć ciąg $n$ sprzężonych kierunków po czym obliczyć wpółczynniki $\alpha_k.$
 
 Odpowiednie dobranie wektorów $p_k,$ może sprawić, że nie będziemy potrzebowali ich wszystkich do uzyskania wystarczająco dobrego przybliżenia wyniku $x_*.$ Dlatego, chcemy przedstawić CG jako metodę iteracyjną aby zmniejszyć czas wykonywania.
 
@@ -1065,7 +1064,7 @@ Implementacja równoległych rozwiązań w MPI okazała się najtrudniejsza, co 
 
 Pisanie kodu w SYCL jest w porównaniu do MPI dość przyjemne i szybkie. Model wymagał jednak pewnego rodzaju początkowego obeznania, gdyż wprowadza wiele specyficznych metod tworzenia oprogramowania, które nie są od początku intuicyjne. Jako dobre wprowadzenie do SYCL możnaby polecić książkę \cite{sycl-book} która bardzo dobrze wyjaśnia zarówno podstawowe techniki jak i te bardziej zaawansowane. Narzędzie było na tyle wygodne, że zostało wykorzystane przy tworzeniu programów do generacji danych wejściowych zarówno dla metody gradientu sprzężonego jak i szybkiej transformaty Fouriera.
 
-Distributed Ranges po raz kolejny jest trudnym przypadkiem do opisania, braki w funkcjonalnościach przestrzeni nazw \emph{mhp} uniemożliwiają, efektywne wprowadzenie biblioteki do jakiegokolwiek większego projektu. Jeżeli chcemy użyć struktur danych zawartych w bibliotece, wymuszony zostaje rodzaj pracy podobny do tego w MPI lecz bardziej ograniczony co widać w implementacji metody gradientu sprzężonego. Widocznym jest jednak, że narzędzie ma duży potencjał. Funkcje które są obecnie zaimplementowane są bardzo łatwe i intuicyjne w użyciu. Praca ze strukturami prawie nie rózni się od pracy z biblioteką \emph{<ranges>} ze standardu C++20. Jednym wynikającym z równoległej natury biblioteki problemem jest brak możliwości przekazywania referencji do wyrażeń lambda używanych w pracy z widokami, co w przypadku \emph{<ranges>} jest bardzo użyteczne. Podobne zachowanie można zaobserwować w SYCL, który jest eksploatowany przez Distributed Ranges. Ciekawym jest w jaki sposób narzędzie będzie się rozwijało dalej. Za naturalną ścieżkę rozwoju możnaby uznać przeniesienie funkcjonalności z przestrzeni \emph{shp} takich jak funkcji mnożenia macierzy przez wektor do części \emph{mhp.}
+Distributed Ranges po raz kolejny jest trudnym przypadkiem do opisania, braki w funkcjonalnościach przestrzeni nazw \emph{mhp} uniemożliwiają, efektywne wprowadzenie biblioteki do jakiegokolwiek większego projektu. Jeżeli chcemy użyć struktur danych zawartych w bibliotece, wymuszony zostaje rodzaj pracy podobny do tego w MPI lecz bardziej ograniczony co widać w implementacji metody gradientu sprzężonego. Widocznym jest jednak, że narzędzie ma duży potencjał. Funkcje które są obecnie zaimplementowane są bardzo łatwe i intuicyjne w użyciu. Praca ze strukturami prawie nie rózni się od pracy z biblioteką \emph{<ranges>} ze standardu C++20. Jednym wynikającym z równoległej natury biblioteki problemem jest brak możliwości przekazywania referencji do wyrażeń lambda używanych w pracy z widokami, co w przypadku \emph{<ranges>} jest bardzo użyteczne. Podobne zachowanie można zaobserwować w SYCL, który jest eksploatowany przez Distributed Ranges. Ciekawym jest w jaki sposób narzędzie będzie się rozwijało dalej. Za naturalną ścieżkę rozwoju możnaby uznać przeniesienie funkcjonalności z przestrzeni \emph{shp,} takich jak funkcji mnożenia macierzy przez wektor, do części \emph{mhp.}
 
 \chapter{Porównanie wydajności}
 Wyniki badania wydajności metody Monte Carlo są pokazane na wykresie na Rysunku \ref{fig:monte-carlo-speedup}. Wykres ten pokazuje przyspieszenie w zależności od ilości wątków. Każdy z programów był kompilowany z użyciem flagi \emph{"-O1"} po to, aby kompilator nie używał automatycznej wektoryzacji. Jak widać na wykresie, różnice pomiędzy przyspieszeniem uzyskanym dla poszczególnych implementacji są niewielkie. Niewielką przewagę nad pozostałymi uzyskał SYCL, szczególnie dobrze zdaje się on radzić sobie z wykorzystaniem wielowątkowości współbieżnej często dostępnej w nowoczesnych procesorach. Odwrotną sytuację widzimy w przypadku biblioteki Distributed Ranges. Dla tego rozwiązania przyspieszenie uzyskane dla 6 wątków, nie różni się w istotny sposób przpadku z 12 użytymi wątkami.
