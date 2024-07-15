@@ -192,9 +192,6 @@ int main(int argc, char **argv) {
     MPI_Barrier(MPI_COMM_WORLD);
     step_size = 1 << i;
     omega = std::exp(-2.0 * J * M_PI / (double)step_size);
-    if (rank == 0) {
-      std::cout << local_array[0] << '\n';
-    }
     if (i < num_bits - 5) {
       // DOPÓKI operacja sendcnts[rank] % step_size == 0 nie jest prawdziwa,
       // czyli kroki mieszczą się dobrze w podzielonym miejscu

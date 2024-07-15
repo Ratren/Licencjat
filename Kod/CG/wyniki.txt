@@ -1,16 +1,49 @@
-BEZ ZRÓWNOLEGLENIA
-Zajelo: 535.13 sekund
-557.28user 2.35system 9:19.68elapsed 99%CPU (0avgtext+0avgdata 11679560maxresident)k
-0inputs+0outputs (0major+2945907minor)pagefaults 0swaps
+dist-ranges
+116.60
 
-
-MPI
-Czas_dzialania_conjugate_gradient: 160.85
-2005.12user 97.37system 3:01.09elapsed 1160%CPU (0avgtext+0avgdata 12514660maxresident)k
-13510128inputs+0outputs (862major+1746330minor)pagefaults 0swaps
-
+sequential
+34.03
 
 SYCL
-2930.00user 14.13system 4:38.11elapsed 1058%CPU (0avgtext+0avgdata 11804376maxresident)k
-13247872inputs+0outputs (1862major+56190minor)pagefaults 0swaps
+12 wątków
+Zajelo: 26.1702 sekund
+304.69user 4.70system 0:30.14elapsed 1026%CPU (0avgtext+0avgdata 11723288maxresident)k
+0inputs+0outputs (0major+27969minor)pagefaults 0swaps
+6 wątków
+Zajelo: 23.9412 sekund
+142.43user 4.02system 0:27.91elapsed 524%CPU (0avgtext+0avgdata 11723296maxresident)k
+0inputs+0outputs (0major+27796minor)pagefaults 0swaps
+4 wątki
+Zajelo: 22.0302 sekund
+87.29user 4.02system 0:26.01elapsed 351%CPU (0avgtext+0avgdata 11723172maxresident)k
+0inputs+0outputs (0major+27896minor)pagefaults 0swaps
+2 wątki
+Zajelo: 18.2724 sekund
+36.33user 3.98system 0:22.24elapsed 181%CPU (0avgtext+0avgdata 11723144maxresident)k
+0inputs+0outputs (0major+27834minor)pagefaults 0swaps
+1 wątek
+Zajelo: 23.4546 sekund
+23.50user 3.93system 0:27.37elapsed 100%CPU (0avgtext+0avgdata 11723176maxresident)k
+0inputs+0outputs (0major+27827minor)pagefaults 0swaps
 
+MPI
+12 wątków
+Czas_dzialania_conjugate_gradient: 15.67
+235.64user 45.25system 0:24.63elapsed 1140%CPU (0avgtext+0avgdata 12515228maxresident)k
+13360inputs+0outputs (1057major+2297313minor)pagefaults 0swaps
+6 wątków
+Czas_dzialania_conjugate_gradient: 13.87
+143.94user 45.26system 0:34.19elapsed 553%CPU (0avgtext+0avgdata 13475632maxresident)k
+15648104inputs+0outputs (126major+1948864minor)pagefaults 0swaps
+4 wątki
+Czas_dzialania_conjugate_gradient: 14.22
+91.57user 29.81system 0:33.74elapsed 359%CPU (0avgtext+0avgdata 14435464maxresident)k
+14837256inputs+0outputs (339major+1864613minor)pagefaults 0swaps
+2 wątki
+Czas_dzialania_conjugate_gradient: 27.21
+66.61user 15.45system 0:47.34elapsed 173%CPU (0avgtext+0avgdata 17317660maxresident)k
+14601952inputs+0outputs (184major+1787727minor)pagefaults 0swaps
+1 wątek
+Czas_dzialania_conjugate_gradient: 53.17
+53.65user 8.41system 1:13.32elapsed 84%CPU (0avgtext+0avgdata 23074528maxresident)k
+14431488inputs+0outputs (115major+1768119minor)pagefaults 0swaps

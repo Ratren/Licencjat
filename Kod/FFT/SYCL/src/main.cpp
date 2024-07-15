@@ -1,6 +1,4 @@
 #include <CL/sycl.hpp>
-#include <access/access.hpp>
-#include <chrono>
 #include <cmath>
 #include <complex>
 #include <cstddef>
@@ -10,6 +8,7 @@
 #include <queue.hpp>
 #include <time.h>
 #include <vector>
+#include <chrono>
 #define J Complex(0.0, 1.0)
 
 typedef std::complex<double> Complex;
@@ -87,36 +86,54 @@ void fft(std::vector<Complex> *input_array, size_t size) {
 
   int num_bits = std::log2(size);
 
-  std::vector<Complex> omega_pows(size);
-  sycl::buffer<Complex, 1> buf_omega_pows(omega_pows.data(),
-                                            sycl::range<1>(size));
-  for (int i = 1; i <= num_bits; ++i) {
-    int step_size = 1 << i;
-    Complex omega = std::exp(-2.0 * J * M_PI / (double)step_size);
-    omega_pows[0] = 1;
-    for (int j = 1; j < step_size / 2; ++j) {
-      omega_pows[j] = omega_pows[j - 1] * omega;
+  for (size_t step = 1; step <= num_bits; ++step) {
+    const size_t step_size_outer = 1 << step;
+    if ((size / step_size_outer) >= 64) {
+      queue.submit([&](sycl::handler &cgh) {
+        const size_t step_size = 1 << step;
+        const Complex omega = std::exp(-2.0 * J * M_PI / (double)step_size);
+        auto acc = buf.get_access<sycl::access::mode::read_write>(cgh);
+        cgh.parallel_for<class fft_calculations>(
+            sycl::range<1>(size / step_size), [=](sycl::id<1> idx) {
+              size_t start = idx[0] * step_size;
+              size_t index_even = start;
+              size_t index_odd = start + step_size / 2;
+              Complex angle = std::pow(omega, 0);
+              Complex temp = acc[index_even];
+              acc[index_even] = temp + angle * acc[index_odd];
+              acc[index_odd] = temp - angle * acc[index_odd];
+              for (size_t i = 1; i < step_size / 2; i++) {
+                index_even = start + i;
+                index_odd = start + i + step_size / 2;
+                temp = acc[index_even];
+                angle = angle * omega;
+                acc[index_even] = temp + angle * acc[index_odd];
+                acc[index_odd] = temp - angle * acc[index_odd];
+              }
+            });
+      });
+    } else {
+      for (size_t start = 0; start < size; start += step_size_outer) {
+        queue.submit([&](sycl::handler &cgh) {
+          const size_t step_size = step_size_outer;
+          const Complex omega = std::exp(-2.0 * J * M_PI / (double)step_size);
+          auto acc = buf.get_access<sycl::access::mode::read_write>(cgh);
+          cgh.parallel_for<class fft_calculations_small_size>(
+              sycl::range<1>(step_size / 2), [=](sycl::id<1> idx) {
+                size_t index_even = start + idx[0];
+                size_t index_odd = start + idx[0] + step_size / 2;
+                Complex temp = acc[index_even];
+                acc[index_even] =
+                    temp + std::pow(omega, idx[0]) * acc[index_odd];
+                acc[index_odd] =
+                    temp - std::pow(omega, idx[0]) * acc[index_odd];
+              });
+        });
+      }
     }
 
-    queue.submit([&](sycl::handler &cgh) {
-      auto acc = buf.get_access<sycl::access_mode::read_write>(cgh);
-      auto omega_pows_acc =
-          buf_omega_pows.get_access<sycl::access_mode::read>(cgh);
-      cgh.parallel_for<class fft_calculations>(
-          sycl::range<1>(size), [=](sycl::id<1> idx) {
-            int r = idx[0] % step_size;
-            if (r < step_size / 2) {
-              Complex t = omega_pows_acc[r] * acc[idx[0] + step_size / 2];
-              Complex x = acc[idx[0]];
-              acc[idx[0]] = x + t;
-              acc[idx[0] + step_size / 2] = x - t;
-            }
-          });
-    });
     queue.wait();
-    std::cout << "Step " << i << ": " << input_array->data()[0] << '\n';
   }
-
 }
 
 int main(int argc, char *argv[]) {
@@ -142,17 +159,16 @@ int main(int argc, char *argv[]) {
 
   inputFile.close();
 
-  bit_reverse_indices(&array, size);
-
   auto start = std::chrono::high_resolution_clock::now();
+
+  bit_reverse_indices(&array, size);
 
   fft(&array, size);
 
   auto end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> duration = end - start;
 
-  std::cout << "FFT zostało wykonane w czasie: " << duration.count()
-            << " sekund\n";
+  std::cout << "FFT zostało wykonane w czasie: " << duration.count() << " sekund\n";
 
   /* std::ofstream outputFile("output.dat", std::ios::binary); */
   /* if (!outputFile.is_open()) { */
