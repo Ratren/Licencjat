@@ -47,27 +47,26 @@ Complex *generate_input_array(unsigned long size) {
 //
 void fft(Complex *input_array, unsigned long size) {
 
+  auto start = std::chrono::high_resolution_clock::now();
   size_t num_bits = std::log2(size);
   bit_reverse_indices(size, num_bits, input_array);
 
-  auto start = std::chrono::high_resolution_clock::now();
-
-  for (unsigned long step = 1; step <= num_bits; ++step) {
-    unsigned long step_size = 1 << step;
+  for (unsigned long i = 1; i <= num_bits; ++i) {
+    unsigned long step_size = 1 << i;
     Complex omega = std::exp(-2.0 * J * M_PI / (double) step_size);
 
     for (unsigned long start = 0; start < size; start += step_size) {
       Complex omega_power = 1;
-      for (unsigned long i = 0; i < step_size / 2; i++) {
-        unsigned long index_even = start + i;
-        unsigned long index_odd = start + i + step_size / 2;
+      for (unsigned long j = 0; j < step_size / 2; j++) {
+        unsigned long index_even = start + j;
+        unsigned long index_odd = start + j + step_size / 2;
         Complex temp = input_array[index_even];
         input_array[index_even] += omega_power * input_array[index_odd];
         input_array[index_odd] = temp - omega_power * input_array[index_odd];
         omega_power *= omega;
       }
     }
-    std::cout << "Step " << step << " " << input_array[0] << '\n';
+    std::cout << "Step " << i << " " << input_array[0] << '\n';
   }
 
   auto end = std::chrono::high_resolution_clock::now();

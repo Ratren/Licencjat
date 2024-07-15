@@ -160,8 +160,6 @@ void conjugate_gradient(const double *A, const double *B, double *X, int size,
   while (old_resid_norm > tolerance) {
     matrix_vector_multiply(queue, A_buf, search_dir, A_search_dir, size);
 
-    std::cout << old_resid_norm << '\n';
-
     alpha = old_resid_norm * old_resid_norm /
             inner_product(queue, search_dir, A_search_dir, size);
     vector_combination(queue, X_buf, alpha, search_dir, size);
@@ -199,8 +197,10 @@ int main() {
   sycl::queue queue{sycl::cpu_selector_v};
 
   auto start = std::chrono::high_resolution_clock::now();
-  for (int i=0 ; i<10; ++i)
+  for (int i=0 ; i<10; ++i) {
     conjugate_gradient(A, B, X, size, queue);
+    queue.wait();
+  }
   auto end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> duration = end -start;
 
