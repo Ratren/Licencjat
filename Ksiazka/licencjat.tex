@@ -23,7 +23,7 @@
 
 
 \usepackage{csquotes}
-\usepackage[backend=biber, style=numeric, citestyle=numeric, language=polish,sortlocale=pl_PL]{biblatex}
+\usepackage[backend=biber, style=numeric, citestyle=numeric, language=polish, sortlocale=pl_PL]{biblatex}
 \addbibresource{../bibliografia.bib}
 
 \usepackage[colorlinks=true]{hyperref} % odnośniki interaktywne w PDFie
@@ -323,7 +323,6 @@ Metodami Monte Carlo nazywamy techniki i algorytmy uzyskiwania wyników operacji
 Obliczanie całki tą metodą to bardzo prosta operacja. Wystarczy wylosować dostateczną liczbę punktów z podanego zakresu aby zapewnić wysoką dokładność wyniku i dla każdego z nich sprawdzić czy znajduje się on pod wykresem sprawdzanej funkcji. Dokładność wyników otrzymanych przy użyciu tej metody zależy w dużej mierze od parametrów wybranego generatora liczb pseudolosowych.
 W projekcie obliczana jest całka funkcji stu-wymiarowej, co sprowadza się do obliczenia miary Jordana\cite{miara-jordana} stu-wymiarowej przestrzeni pod funkcją. Jako zakres całkowania przyjąłem hipersześcian współdzielący środek z układem współrzędnych. Zdecydowałem się na taki zabieg po to, aby zwiększyć ilość obliczeń, a tym samym czas wykonywania programu. 
 \subsection{Metoda gradientu sprzężonego}
-\theoremstyle{definition}
 Metoda gradientu sprzężonego (ang. \emph{conjugate gradient method}, CG) jest metodą numeryczną zaproponowaną w 1952 roku \cite{conjugate-gradient}, pozwalającą na rozwiązywanie układów równań liniowych w postaci $Ax = b$, których macierz $A$ spełnia następujące warunki:
 \begin{itemize}
 \item jest symetryczna $A^T=A$ co oznacza, że dla każdego $i, j$ prawdziwe jest równanie $a_{ij} = a_{ji}.$
@@ -333,6 +332,7 @@ Metoda gradientu sprzężonego (ang. \emph{conjugate gradient method}, CG) jest 
 Symetryczność macierzy jest cechą dobrze znaną, jednak aby przybliżyć cechę dodatniej określoności należy wprowadzić kilka pojęć.
 
 \newtheorem{df}{Definicja} 
+\theoremstyle{definition}
 \begin{df} 
 Formą kwadratową\cite{quadratic-form}, nazywamy wielomian, którego każda zmienna jest drugiego stopnia. Możemy ją uprościć do postaci:
 $$f(x) = x^TAx,$$
@@ -370,7 +370,7 @@ $$ x = \sum_{i=1}^n\alpha_ix_i = \alpha_1x_1 + \alpha_2x_2 + \ldots + \alpha_nx_
 \end{df}
 
 \begin{df}
-Mówimy, że ciąg wektorów $v_1, v_2, \ldots, v_k$ z przestrzeni $V$ jest liniowo niezależny, gdy równanie $$a_1v_1 + a_2v_2 + \ldots + a_kv_k = 0,$$ gdzie $\mathbf{0}$ oznacza wektor zerowy, jest spełnione tylko w przypadku gdy $a_i = 0$ dla $i = 1, 2, \ldots, k.$
+Mówimy, że ciąg wektorów $v_1, v_2, \ldots, v_k$ z przestrzeni $V$ jest liniowo niezależny, gdy równanie $$a_1v_1 + a_2v_2 + \ldots + a_kv_k = \mathbf{0},$$ gdzie $\mathbf{0}$ oznacza wektor zerowy, jest spełnione tylko w przypadku gdy $a_i = 0$ dla $i = 1, 2, \ldots, k.$
 \end{df}
 
 \begin{df} 
@@ -385,14 +385,17 @@ nazywamy bazą przestrzeni wektorowej $V$.
 
 Załóżmy, że $P = \{p_1, p_2, \ldots, p_n\}$ jest ciągiem $n$ parami sprzężonych względem $A$ kierunków, czyli 
 $$\forall i \neq j: p_i^TAp_j = 0 .$$
-
-Pokażemy, że $P$ tworzy bazę $\mathbb{R}^n.$ Załóżmy, że istnieje kombinacja liniowa układu $P$ dająca wektor zerowy:
-$$\alpha_1p_1 + \alpha_2p_2 + \ldots + \alpha_np_n = \mathbb{0}.$$
-Aby pokazać, że $\alpha_i = 0$ dla wszystkich $i=1,\ldots,n$ przemnóżmy powyższą kombinację obustronnie przez $p_i^TA.$
-$$p_i^TA(\alpha_1p_1 + \alpha_2p_2 + \ldots + \alpha_np_n) = p_i^TA\mathbb{0} = \mathbb{0}$$
+\begin{proof}
+Pokażemy, że $P$ tworzy bazę $\mathbb{R}^n.$ Załóżmy, że istnieje kombinacja liniowa układu $P$ z conajmniej jednym niezerowym współczynnikiem $\alpha_i$ dająca wektor zerowy:
+$$\alpha_1p_1 + \alpha_2p_2 + \ldots + \alpha_np_n = 0.$$
+Aby udowodnić, że $\alpha_i = 0$ dla wszystkich $i=1,\ldots,n$ przemnóżmy powyższą kombinację obustronnie przez $p_i^TA.$
+$$p_i^TA(\alpha_1p_1 + \alpha_2p_2 + \ldots + \alpha_np_n) = p_i^TA0 = 0$$
+$$\sum_{j=1}^n\alpha_jp_i^TAp_j = 0$$
 Wykorzystując wzajemną sprzężoność wektorów $p_i^TAp_j = 0$ dla $i \neq j$ otrzymujemy:
-$$\alpha_ip_i^TAp_i.$$ 
-Ponieważ $p_i^TAp_i \neq 0,$ można zapisać $\alpha_i = 0.$ 
+$$\alpha_ip_i^TAp_i = 0.$$ 
+Ponieważ A jest macierzą dodatnio określoną, to $p_i^TAp_i \neq 0,$ dzięki temu można zapisać: $$\alpha_i = 0.$$ 
+\end{proof}
+
 
 Zatem wektor wynikowy $x_*$ możemy przedstawić w postaci $x_* = \sum_{i=1}^n\alpha_ip_i.$ podstawiając to do układu równań $Ax = b$ otrzymujemy:
 $$ Ax_* = \sum^n_{i=1}\alpha_iAp_i = b. $$ Wymnożenie tego równania przez wektor $p_k^T$ daje nam:
