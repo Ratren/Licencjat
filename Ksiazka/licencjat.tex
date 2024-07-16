@@ -378,15 +378,21 @@ Zbiór wektorów $B$ należacych do jakiejś przestrzeni $V$ spełniający dwa w
 \begin{enumerate}
 \item Generuje przestrzeń $V$, to znaczy każdy wektor z przestrzeni $V$ może być zapisany jako kombinacja liniowa wektorów ze zbioru $B;$
 \item jest liniowo niezależny;
-nazywamy bazą przestrzeni wektorowej $V$.
 \end{enumerate}
+nazywamy bazą przestrzeni wektorowej $V$.
 \end{df}
 
 
 Załóżmy, że $P = \{p_1, p_2, \ldots, p_n\}$ jest ciągiem $n$ parami sprzężonych względem $A$ kierunków, czyli 
 $$\forall i \neq j: p_i^TAp_j = 0 .$$
+
+\newtheorem{thm}{Twierdzenie} 
+\theoremstyle{definition}
+\begin{thm}
+$P$ stanowi bazę $\mathbb{R}^n.$
+\end{thm}
 \begin{proof}
-Pokażemy, że $P$ tworzy bazę $\mathbb{R}^n.$ Załóżmy, że istnieje kombinacja liniowa układu $P$ z conajmniej jednym niezerowym współczynnikiem $\alpha_i$ dająca wektor zerowy:
+Załóżmy, że istnieje kombinacja liniowa układu $P$ z conajmniej jednym niezerowym współczynnikiem $\alpha_i$ dająca wektor zerowy:
 $$\alpha_1p_1 + \alpha_2p_2 + \ldots + \alpha_np_n = 0.$$
 Aby udowodnić, że $\alpha_i = 0$ dla wszystkich $i=1,\ldots,n$ przemnóżmy powyższą kombinację obustronnie przez $p_i^TA.$
 $$p_i^TA(\alpha_1p_1 + \alpha_2p_2 + \ldots + \alpha_np_n) = p_i^TA0 = 0$$
