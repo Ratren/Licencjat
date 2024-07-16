@@ -23,7 +23,7 @@
 
 
 \usepackage{csquotes}
-\usepackage[backend=biber, style=numeric, citestyle=numeric]{biblatex}
+\usepackage[backend=biber, style=numeric, citestyle=numeric, language=polish,sortlocale=pl_PL]{biblatex}
 \addbibresource{../bibliografia.bib}
 
 \usepackage[colorlinks=true]{hyperref} % odnośniki interaktywne w PDFie
@@ -127,35 +127,35 @@
 
 \chapter*{Wstęp}
 \addcontentsline{toc}{chapter}{Wstęp}
-Na przestrzeni lat powstało wiele narzędzi mających za zadanie umożliwić programowanie równoległe. Wraz rosnącą liczbą możliwych do wyboru opcji często pojawiają się pytania na temat relatywnej wydajności takich rozwiązań. Zważając na fakt, że równoleglizacja operacji wykonywanych przez program często nie jest rzeczą łatwą oraz zwiększa ilość czasu potrzebną do implementacji rozwiązania różnych problemów, zaczęły powstawać narzędzia które próbują skrócić ten proces oraz zwiększyć produktywność w tym samym czasie zachowując odpowiedni poziom wydajności. 
+Na przestrzeni lat powstało wiele narzędzi mających za zadanie umożliwić programowanie równoległe. Wraz z rosnącą liczbą możliwych do wyboru opcji często pojawiają się pytania na temat relatywnej wydajności takich rozwiązań. Zważając na fakt, że równoleglizacja operacji wykonywanych przez program często nie jest rzeczą łatwą oraz zwiększa ilość czasu potrzebną do implementacji rozwiązania różnych problemów, zaczęły powstawać narzędzia które próbują skrócić ten proces oraz zwiększyć produktywność, zachowując przy tym odpowiedni poziom wydajności. 
 
-Celem tej pracy jest porównanie wydajności oraz łatwości w użyciu trzech takich narzędzi. 
+Celem tej pracy jest porównanie wydajności oraz łatwości w użyciu trzech takich narzędzi. W niej opracowane są narzędzia SYCL, MPI oraz biblioteka Distributed Ranges. Wykonano testy polegające na porównaniu ich wydajności oraz łatwości w użyciu implementując rozwiązania trzech problemów: całkowania metodą Monte Carlo, rozwiązywania układu równań liniowych z pomocą metody gradientu sprzężonego oraz obliczanie szybkiej transformacji Fouriera. 
 
-Najpierw zostało opisane kilka ważnych pojęć związanych z programowaniem równoległym. Drugi rozdział przedstawia pokrótce narzędzia oraz algorytmy wybrane jako obiekt testów oraz opisuje środowsko na którym zostały one przeprowadzone. W kolejnym rozdziale znajduje się opis problemów napotkanych przy implementacji oraz krótki komentarz na temat ostatecznych wyników testu. Rozdział czwarty zawiera opinię na temat łatwości w użyciu wybranych do porównania narzędzi. Piąty rozdział w większych szczegółach przedstawia wyniki wykonanych testów oraz wnioski które można z nich wyciągnąć. Ostatni rozdział jest podsumowaniem wyników projektu.
+Najpierw opisano kilka ważnych pojęć związanych z programowaniem równoległym. Drugi rozdział przedstawia pokrótce narzędzia oraz algorytmy wybrane jako obiekt testów oraz opisuje środowsko na którym zostały one przeprowadzone. W kolejnym rozdziale znajduje się opis problemów napotkanych przy implementacji oraz krótki komentarz na temat ostatecznych wyników testu. Rozdział czwarty zawiera opinię na temat łatwości w użyciu wybranych do porównania narzędzi. Piąty rozdział w większych szczegółach przedstawia wyniki wykonanych testów oraz wnioski które można z nich wyciągnąć. Ostatni rozdział jest podsumowaniem wyników projektu.
 
 \chapter{Programowanie równoległe}
-W świecie dzisiejszej informatyki oraz technologii obliczeniowych kluczowym wyzwaniem stało się wykonywanie obliczeń na bardzo dużych zbiorach danych. Sekwencyjne podejście do takich problemów stało się niewystarczające. W obliczu ciągle rosnących wymagań obliczeniowych współczesnego świata zaszła potrzeba przyspieszenia niektórych operacji. W ten sposób powstała idea programowania równoległego, które pozwala na wykorzystanie wielu jednostek obliczeniowych do jednoczesnego wykonywania operacji.
+W świecie dzisiejszej informatyki oraz technologii obliczeniowych kluczowym wyzwaniem jest wykonywanie obliczeń na bardzo dużych zbiorach danych. Sekwencyjne podejście do takich problemów stało się niewystarczające. W obliczu ciągle rosnących wymagań obliczeniowych współczesnego świata zaszła potrzeba przyspieszenia niektórych operacji. W ten sposób powstała idea programowania równoległego, które pozwala na wykorzystanie wielu jednostek obliczeniowych do jednoczesnego wykonywania obliczeń.
 
-Programowanie równoległe polega na podziale zadania na mniejsze, niezależne od siebie części które mogą być przetwarzane jednocześnie. Wykorzystanie kart graficznych oraz procesorów wielordzeniowych prowadzi do znacznego skrócenia czasu wykonywania zadań.
+Programowanie równoległe polega na podziale zadania na mniejsze, niezależne od siebie części, które mogą być przetwarzane jednocześnie. Wykorzystanie kart graficznych oraz procesorów wielordzeniowych prowadzi do znacznego skrócenia czasu wykonywania zadań.
 
 Celem tego rozdziału jest omówienie podstawowych koncepcji związanych z programowaniem równoległym oraz wprowadzenie terminologii.
 
 \section{Podstawowe pojęcia}
 W tym podrozdziale wymienionych zostanie kilka podstawowych pojęć często używanych w kontekscie programowania równoległego.
 \begin{itemize}
-\item Proces - działający program dla którego system operacyjny zarezerwował zasoby. W jednym procesie może istnieć wiele wątków
+\item Proces - działający program, dla którego system operacyjny zarezerwował zasoby. W jednym procesie może istnieć wiele wątków.
 \item Wątek - część programu wykonywana współbieżnie w obrębie jednego procesu. Utworzenie wątku jest o wiele szybsze niż utworzenie procesu.
 \item Bariera - w kontekście programowania równoległego jest to mechanizm synchronizacyjny powodujący, że wątki czekają na siebie, zanim przejdą do kolejnych obliczeń.
 \item Mutex (ang. \emph{mutual exclusion}, wzajemne wykluczenie) - Narzędzie synchronizacyjne kontroli dostępu do współdzielonego przez wiele wątków zasobu.
 \item Wyścig danych (ang. \emph{race condition}) - Sytuacja w której dochodzi do błędu wywołanego niekontrolowanym porządkiem wykonywania obliczeń.
 \item Zakleszczenie (ang. \emph{deadlock}) - Stan w którym dwa lub więcej wątków oczekuje na zasoby w sposób uniemożliwiający kontynuowanie ich pracy.
-\item Zawstydzająca równoległość - Mówimy że algorytm jest zawstydzająco równoległy jeśli pomiędzy podzadaniami wydzielonymi dla różnych wątków nie zachodzi potrzeba kontaktu. Takie problemy są najłatwiejsze w implementacji.
+\item Zawstydzająca równoległość - Mówimy że algorytm jest zawstydzająco równoległy, jeśli pomiędzy podzadaniami wydzielonymi dla różnych wątków nie zachodzi potrzeba kontaktu. Takie problemy są najłatwiejsze w implementacji.
 \item Wielowątkowość współbieżna (ang. \emph{Simultaneous Multi-Threading}, SMT) - to technika poprawy wydajności procesora poprzez umożliwienie wykonywania niezależnych od siebie wątków na jednym rdzeniu.
 \end{itemize}
 
 \section{Taksonomia Flynna}
 Taksonomia Flynna to klasyfikacja systemów komputerowych zaproponowana przez Michaela J. Flynna w 1996 roku \cite{Flynn1966}. System klasyfikacji uwzględnia jako czynniki liczbę strumieni rozkazów oraz liczbę strumieni danych.
-W pierwotnej wersji Flynn opisał cztery klasy systemów komputerowych. zaliczają się do nich:
+W pierwotnej wersji Flynn opisał cztery klasy systemów komputerowych. Zaliczają się do nich:
 \begin{itemize}[topsep=1pt, itemsep=0.5pt]
 	\item pojedynczy strumień rozkazów, pojedynczy strumień danych (ang. \emph{single instruction, single data, SISD});
 	\item pojedynczy strumień rozkazów, wiele strumieni danych (ang. \emph{single instruction, multiple data, SIMD});
@@ -173,13 +173,13 @@ W grupie SISD znajdują się komputery sekwencyjne, nie wykorzystujące zrównol
 \end{figure}
 
 \subsection{SIMD}
-W komputerach z kategorii SIMD instrukcje mogą być wykonywane sekwencyjne lub równolegle przez kilka jednostek funkcyjnych. W artykule Flynna z roku 1972 \cite{Flynn1972} został dokonany podział klasy na trzy podkategorie:
+W komputerach z kategorii SIMD instrukcje mogą być wykonywane sekwencyjne lub równolegle przez kilka jednostek funkcyjnych. W artykule Flynna z roku 1972 \cite{Flynn1972} dokonano dodatkowego podziału klasy na trzy podkategorie:
 \begin{itemize}
 	\item Procesor wektorowy (ang. \emph{Array processor}) - obliczenia są wykonywane na całych wektorach danych, każda jednostka obliczeniowa posiada własny rejestr pamięci.
 	\item Procesor potokowy (ang. \emph{Pipelined processor}) - jednostka obliczeniowa wykonuje instrukcje na fragmencie danych z centralnej jednostki pamięci i przetworzone dane zapisuje do tej samej jednostki.
-	\item Procesor asocjacyjny (ang. \emph{Associative processor}) - tego typu systemy otrzymują ten sam rozkaz, jednak każda jednostka obliczeniowa podejmuje niezależną decyzję odnośnie tego czy wykonać zadaną instrukcję, czy ją pominąć. Decyzja ta jest podejmowana na podstawie danych otrzymanych przez daną jednostkę.
+	\item Procesor asocjacyjny (ang. \emph{Associative processor}) - tego typu systemy otrzymują ten sam rozkaz, jednak każda jednostka obliczeniowa podejmuje niezależną decyzję odnośnie tego czy wykonać zadaną instrukcję, czy ją pominąć. Decyzja ta jest podejmowana na podstawie danych otrzymanych przez daną jednostkhttps://github.com/Ratren/Licencjatę.
 \end{itemize}
-Superkomputery wektorowe były głównymi reprezentantami kategorii SIMD. Bardzo popularnym przykładem jest Cray-1 \cite{Cray-1}, superkomputer z lat siedemdziesiątych który obecnie znajduje się w Muzeum Nauki w Londynie. W wielu współczesnych architekturach procesorów są dostępne instrukcje które wykonują operacje wektorowe.Rysunek \ref{fig:simd} obrazuje architekturę SISD w postaci diagramu.
+Superkomputery wektorowe są głównymi reprezentantami kategorii SIMD. Bardzo popularnym przykładem jest Cray-1 \cite{Cray-1}, superkomputer z lat siedemdziesiątych który obecnie znajduje się w Muzeum Nauki w Londynie. W wielu współczesnych architekturach procesorów są dostępne instrukcje które wykonują operacje wektorowe. Rysunek \ref{fig:simd} obrazuje architekturę SIMD w postaci diagramu.
 \begin{figure}
 	\centering
 	\includegraphics[scale=1]{assets/SIMD.pdf}
@@ -188,7 +188,7 @@ Superkomputery wektorowe były głównymi reprezentantami kategorii SIMD. Bardzo
 \end{figure}
 
 \subsection {MISD}
-MISD jest architekturą stosowaną niezwykle rzadko, gdyż jedynym jej zastosowaniem jest minimalizacja błędów poprzez wykonywanie tej samej instrukcji wielokrotnie. Dobrze znanym przypadkiem użycia jest komputer Wahadłowca Kosmicznego skonstruowanego przez NASA \cite{SpaceShuttle}. Rysunek \ref{fig:misd} obrazuje architekturę SISD w postaci diagramu.
+MISD jest architekturą stosowaną niezwykle rzadko, gdyż jedynym jej zastosowaniem jest minimalizacja błędów poprzez wykonywanie tej samej instrukcji wielokrotnie. Dobrze znanym przypadkiem użycia jest komputer Wahadłowca Kosmicznego skonstruowanego przez NASA \cite{SpaceShuttle}. Rysunek \ref{fig:misd} obrazuje architekturę MISD w postaci diagramu.
 \begin{figure}
 	\centering
 	\includegraphics[scale=1]{assets/MISD.pdf}
@@ -197,7 +197,7 @@ MISD jest architekturą stosowaną niezwykle rzadko, gdyż jedynym jej zastosowa
 \end{figure}
 
 \subsection {MIMD}
-MIMD to architektura pozwalająca na wykonywanie wielu instrukcji na wielu strumieniach danych. Jest to obecnie najbardziej popularna klasa komputerów. Nowoczesne komputery osobiste najczęściej posiadają wielo-rdzeniowe procesory które mają możliwość równoległego wykonywania różnych instrukcji na róznych zestawach danych. Rysunek \ref{fig:mimd} obrazuje architekturę SISD w postaci diagramu.
+MIMD to architektura, pozwalająca na wykonywanie wielu instrukcji na wielu strumieniach danych. Jest to obecnie najbardziej popularna klasa komputerów. Nowoczesne komputery osobiste najczęściej posiadają wielordzeniowe procesory, które mają możliwość równoległego wykonywania różnych instrukcji na róznych zestawach danych. Rysunek \ref{fig:mimd} obrazuje architekturę MIMD w postaci diagramu.
 \begin{figure}
 	\centering
 	\includegraphics[scale=1]{assets/MIMD.pdf}
@@ -209,17 +209,17 @@ MIMD to architektura pozwalająca na wykonywanie wielu instrukcji na wielu strum
 W systemach równoległych istnieją dwa modele organizacji pamięci:
 \begin{itemize}
 	\item Pamięć wspólna - wszystkie procesory w tym modelu mają dostęp do wspólnej przestrzeni adresowej. To rozwiązanie często może być wolniejsze poprzez jednoczesne próby dostępu do pamięci przez poszczególne jednostki. Dużą zaletą tego typu architektury jest łatwa komunikacja pomiędzy procesorami.
-	\item Pamięć rozproszona - każdy z procesorów w tym modelu posiada pamięć lokalną, a komunikacja między nimi zachodzi przez sieć. Zaletą tego rozwiązania jest duża skalowalność oraz brak problemu jednoczesnego dostępu do pamięci. Niestety, niedogodnością jest konieczność stosowania bardziej skomplikowanych mechanizmów komunikacji oraz często wyspecjalizowanych algorytmów stworzonych dokładnie do tego celu. Projekt przykłada dużą uwagę do rozwiązań umożliwiających wykorzystanie pamięci rozproszonej używając standardu MPI oraz biblioteki distributed-ranges.
+	\item Pamięć rozproszona - każdy z procesorów w tym modelu posiada pamięć lokalną, a komunikacja między nimi zachodzi przez sieć. Zaletą tego rozwiązania jest duża skalowalność oraz brak problemu jednoczesnego dostępu do pamięci. Niestety, niedogodnością jest konieczność stosowania bardziej skomplikowanych mechanizmów komunikacji oraz często wyspecjalizowanych algorytmów stworzonych dokładnie do tego celu.
 \end{itemize}
 Duże znaczenie we współczesnych systemach komputerowych odgrywają również różne rodzaje pamięci \cite{hierarchia-pamieci}.
 \begin{itemize}
 	\item Pamięć masowa/drugorzędna - pamięć długoterminowa zachowująca stan nawet po odłączeniu od źródła zasilania. Jest to najbardziej pojemny, ale i najwolniejszy rodzaj pamięci. W większości przypadków fizycznie znajduje się najdalej od procesora.
-	\item Pamięc operacyjna, pamięć o dostępie swobodnym (ang. \emph{Random Access Memory}, RAM) - rodzaj pamięci znajdujący się niedaleko procesora, aby umożliwić duże prędkości przesyłu danych. Ma mniejszą pojemność niż pamięć masowa.
-	\item Pamięć podręczna (ang. \emph{Cache memory}) - najszybsza pamięć, która przechowuje dane do których jest potrzebny bardzo szybki dostęp, fizycznie często jest zintegrowana bezpośrednio z procesorem. Ma ona małą pojemność i to z niej procesor pobiera dane do swoich rejestrów.
+	\item Pamięć operacyjna, pamięć o dostępie swobodnym (ang. \emph{Random Access Memory}, RAM) - rodzaj pamięci znajdujący się blisko procesora, aby umożliwić duże prędkości przesyłu danych. Ma mniejszą pojemność niż pamięć masowa.
+	\item Pamięć podręczna (ang. \emph{Cache memory}) - najszybsza pamięć, która przechowuje dane do których jest potrzebny bardzo szybki dostęp. Fizycznie często jest zintegrowana bezpośrednio z procesorem. Ma ona małą pojemność i to z niej procesor pobiera dane do swoich rejestrów.
 	\item Rejestry procesora - jednostki pamięci na których bezpośrednio są wykonywane operacje.
 \end{itemize}
-W dzisiejszych czasach, rodzajem pamięci decydującym o prędkości wykonywanych operacji jest pamięć podręczna \cite{cache-memory}. Algorytmy oraz struktury danych, z których korzysta program, powinny być dobierane tak, aby zminimalizować konieczność częstego przenoszenia danych z RAM do pamięci podręcznej.
-Hierarchia pamięci została zwizualizowana na Rysunku \ref{fig:hierarchia_pamieci}.
+W dzisiejszych czasach, rodzajem pamięci decydującym o prędkości wykonywanych operacji jest pamięć podręczna. Algorytmy oraz struktury danych, z których korzysta program, powinny być dobierane tak, aby zminimalizować konieczność częstego przenoszenia danych z RAM do pamięci podręcznej.
+Hierarchia pamięci zwizualizowano na rysunku \ref{fig:hierarchia_pamieci} \cite{cache-memory}.
 \begin{figure}[h]
 	\centering
 	\includegraphics[scale=1]{assets/hierarchia_pamieci.pdf}
@@ -228,17 +228,17 @@ Hierarchia pamięci została zwizualizowana na Rysunku \ref{fig:hierarchia_pamie
 \end{figure}
 
 \chapter{Przegląd wykonanych testów}
-Ten rozdział zawiera opis narzędzi oraz problemów które zostały poddane testom wydajności oraz łatwości w użyciu. Dodatkowo w ostatnim podrozdziale zawarty jest opis środowiska na którym testy zostały przeprowadzone.
+Ten rozdział zawiera opis narzędzi oraz problemów które poddano testom wydajności oraz łatwości w użyciu. Dodatkowo w ostatnim podrozdziale zawarty jest opis środowiska, na którym przeprowadzano wszystkie badania.
 \section{Wybrane narzędzia}
-Narzędzia, które zostały wybrane do porównania to SYCL, MPI (ang. \emph{Message Passing Interface}) oraz biblioteka distributed-ranges wykorzystująca obydwie te technologie \cite{SYCL, MPI, dist-ranges}. Narzędzie przygotowane przez jeden z zespołów firmy Intel jako cel obrało zwiększenie produktywności pracy programistów przy pisaniu kodu. Chęć sprawdzenia obecnego stanu rozwoju tego była motywatorem przy dokonywaniu tego wyboru. MPI oraz SYCL zostały wybrane ze względu na to, że distributed-ranges w dużej mierze bazuje na tych dwóch technologiach.
+Narzędzia, które wybrano do porównania to SYCL, MPI (ang. \emph{Message Passing Interface}) oraz biblioteka Distributed Ranges wykorzystująca obydwie te technologie \cite{SYCL, MPI, dist-ranges}. Distributed Ranges przygotowana przez jeden z zespołów firmy Intel jako cel obrała zwiększenie produktywności pracy programistów przy pisaniu kodu. Motywacją dokonania tego wyboru jest chęć sprawdzenia obecnego stanu rozwoju. MPI oraz SYCL wybrano ze względu na to, że Distributed Ranges w dużej mierze bazuje na tych dwóch technologiach.
 \subsection{SYCL}
-Na stronie internetowej grupy Khronos, twórców narzędzia, widnieje zdanie ,,SYCL to bezpłatna, wieloplatformowa warstwa abstrakcji [...]''\cite{SYCL-overview}. Jest on modelem zgodnym ze standardem C++ 17. Jego zadaniem i głównym celem jest umożliwienie współpracy wielu urządzeniom w jednej aplikacji. Twórcom udaje się to poprzez udostępnienie API (ang. \emph{Application Programming Interface}, interfejsów programistycznych aplikacji) oraz abstrakcji dających dostęp do urządzeń takich jak procesory, karty graficzne czy FPGA (ang. \emph{Field Programmable Gate Array}, bezpośrednio programowalne macierze bramek). SYCL jest więc modelem wysoko-poziomowym, używającym nowoczesnych standardów, który upraszcza działanie z wieloma urządzeniami na raz. Wstępna specyfikacja SYCL została udostępniona 19 marca 2014 roku \cite{SYCL1.2-provisional}. Finalna specyfikacja SYCL 1.2 była wydana ponad rok później 11 Maja 2015 roku \cite{SYCL1.2}. Obecnie najnowszym wydaniem specyfikacji jest SYCL 2020 z 9 Lutego 2021 roku. Istnieje kilka rozwijanych równolegle implementacji modelu SYCL. W projekcie zostało użyte rozwiązanie firmy Intel zawarte w zestawie narzędzi oneAPI.
+Na stronie internetowej grupy Khronos, twórców narzędzia, widnieje zdanie: ,,SYCL to bezpłatna, wieloplatformowa warstwa abstrakcji [...]''\cite{SYCL-overview}. Jest on modelem zgodnym ze standardem C++ 17. Jego zadaniem i głównym celem jest umożliwienie współpracy wielu urządzeniom w jednej aplikacji. Twórcom udaje się to poprzez udostępnienie API (ang. \emph{Application Programming Interface}, interfejsów programistycznych aplikacji) oraz abstrakcji dających dostęp do urządzeń takich jak procesory, karty graficzne czy FPGA (ang. \emph{Field Programmable Gate Array}, bezpośrednio programowalne macierze bramek). SYCL jest więc modelem wysokopoziomowym, używającym nowoczesnych standardów, który upraszcza działanie z wieloma urządzeniami na raz. Wstępna specyfikacja SYCL została udostępniona 19 marca 2014 roku \cite{SYCL1.2-provisional}. Finalną specyfikację SYCL 1.2 wydano ponad rok później, 11 maja 2015 roku \cite{SYCL1.2}. Obecnie najnowszym wydaniem specyfikacji jest SYCL 2020 z 9 lutego 2021 roku. Istnieje kilka rozwijanych równolegle implementacji modelu SYCL. W projekcie użyto rozwiązania firmy Intel zawartego w zestawie narzędzi oneAPI.
 \subsection{MPI}
-Interfejs przekazywania wiadomości (ang. \emph{Message Passing Interface}, MPI) jest standardem przekazywania wiadomości pomiędzy  procesami programów równoległych. Ten protokół komunikacyjny utworzony i ustandaryzowany w czerwcu roku 1994 roku jest rezultatem prac wielu osób oraz firm. MPI jest szeroko wykorzystywany przy tworzeniu programów działających w systemach z pamięcią rozproszoną. Wiele języków programowania posiada własne implementacje MPI, jednak najczęściej używanymi są kompilatory języków C, C++ oraz Fortran. Standard od czasu swojego powstania był wciąż rozwijany i powstało kilka wersji, które bazowały i wzbogacały swoich poprzedników o nowe funkcje. Najnowszą zatwierdzoną przez forum wersją jest MPI-4.1 z listopada roku 2023 \cite{mpi41}.
+Interfejs przekazywania wiadomości (ang. \emph{Message Passing Interface}, MPI) jest standardem przekazywania wiadomości pomiędzy  procesami programów równoległych. Ten protokół komunikacyjny utworzony i ustandaryzowany w czerwcu roku 1994 roku jest rezultatem prac wielu osób oraz firm. MPI jest szeroko wykorzystywany przy tworzeniu programów działających w systemach z pamięcią rozproszoną. Wiele języków programowania posiada własne implementacje MPI, jednak najczęściej używanymi są kompilatory języków C, C++ oraz Fortran. Standard od czasu swojego powstania był wciąż rozwijany i powstało kilka wersji, które bazowały i wzbogacały swoich poprzedników o nowe funkcje. Najnowszą zatwierdzoną przez forum wersją jest MPI-4.1 z listopada 2023 roku \cite{mpi41}.
 \subsection{Distributed Ranges}
-Zakresy rozproszone (ang. \emph{Distributed Ranges}) to biblioteka języka C++ utworzona przez firmę Intel zwiększająca produktywność pracy w systemach z pamięcią rozproszoną. Narzędzie to wykorzystuje bibliotekę ranges ze standardu C++ 20 i oferuje kolekcję struktur danych, widoków oraz algorytmów. Distributed ranges jest kompatybilna i zdolna do współpracy z MPI, SYCL, OpenMP oraz SHMEM. Kod źródłowy biblioteki jest otwarty i dostępny za darmo \cite{dist-ranges}. Repozytorium powstało i jest rozwijane od roku 2022. Jako, że zarówno biblioteka ranges (C++ 20) jak i distributed-ranges są technologiami wprowadzonymi niedawno, postaram się przybliżyć najważnejsze informacje z nimi związane.
+Zakresy rozproszone (ang. \emph{Distributed Ranges}) to biblioteka języka C++ utworzona przez firmę Intel zwiększająca produktywność pracy w systemach z pamięcią rozproszoną. Narzędzie to wykorzystuje bibliotekę ranges ze standardu C++ 20 i oferuje kolekcję struktur danych, widoków oraz algorytmów. Distributed ranges jest kompatybilna i zdolna do współpracy z MPI, SYCL, OpenMP oraz SHMEM. Kod źródłowy biblioteki jest otwarty i dostępny za darmo \cite{dist-ranges}. Repozytorium powstało i jest rozwijane od 2022 roku. Jako, że zarówno biblioteka ranges (C++20), jak i Distributed Ranges, są technologiami wprowadzonymi niedawno, postaram się przybliżyć najważnejsze informacje z nimi związane.
 \subsubsection{Ranges}
-Nagłówek \emph{<ranges>} zawiera kilka konceptów (ang. \emph{concept}) które są, w najprostszej swojej postaci, abstrakcją dowolnego, iterowalnego zbioru elementów posiadającego początek i koniec \cite{ranges}. kolekcja ta, aby spełnić bazową definicję \emph{range}, musi posiadać metody \emph{begin()} oraz \emph{end()}. W tabeli \ref{ranges_concepts} znajduje się krótki opis kilku konceptów z \emph{std::ranges} oraz informacja o tym które z najczęściej używanych struktur danych z STL (ang. \emph{Standard Template Library}, Standardowa biblioteka szablonów) spełniają dany koncept.
+Nagłówek \emph{<ranges>} zawiera kilka konceptów (ang. \emph{concept}), które są, w najprostszej swojej postaci, abstrakcją dowolnego, iterowalnego zbioru elementów posiadającego początek i koniec \cite{ranges}. kolekcja ta, aby spełnić bazową definicję \emph{range}, musi posiadać metody \emph{begin()} oraz \emph{end()}. W tabeli \ref{ranges_concepts} znajduje się krótki opis kilku konceptów z \emph{std::ranges} oraz informacja o tym które z najczęściej używanych struktur danych z STL (ang. \emph{Standard Template Library}, Standardowa biblioteka szablonów) spełniają dany koncept.
 \begin{table}[H]
 \begin{adjustbox}{max width=\textheight, angle=90, center}
 \begin{tabular}{|l|m{7cm}|ccccc|}
@@ -262,7 +262,7 @@ Nagłówek \emph{<ranges>} zawiera kilka konceptów (ang. \emph{concept}) które
 \caption{Wybrane koncepty z std::ranges}
 \label{ranges_concepts}
 \end{table}
-W bibliotece zdefiniowane są klasy widoków (ang. \emph{view}). Widok to zakres odwołujący się do elementów, których nie posiada. Widok jest sposobem modyfikacji zakresu, do którego się odwołuje. Łączenie i tworzenie widoków jest bardzo wydajne, gdyż uzyskiwanie dostępu do elementów widoku odbywa się "leniwie", czyli tak, aby operacje zostały wykonane dopiero przy próbie dostępu do wartości. Przykładem wykorzystania zakresów może być Listing \ref{lst:ranges_przyklad}. Jak widać, widoki można łączyć ze sobą aby w prosty i wydajny sposób wykonywać większe, bardziej skomplikowane operacje. Odbywa się to często poprzez użycie operatora potoku ("$|$") znanego na przykład z powłoki Bash.
+W bibliotece zdefiniowane są klasy widoków (ang. \emph{view}). Widok to zakres odwołujący się do elementów, których nie posiada. Widok jest sposobem modyfikacji zakresu, do którego się odwołuje. Łączenie i tworzenie widoków jest bardzo wydajne, gdyż uzyskiwanie dostępu do elementów widoku odbywa się "leniwie", czyli tak, aby operacje wykonano dopiero przy próbie dostępu do wartości. Przykładem wykorzystania zakresów może być listing \ref{lst:ranges_przyklad}. Jak widać, widoki można łączyć ze sobą aby w prosty i wydajny sposób wykonywać większe, bardziej skomplikowane operacje. Odbywa się to często poprzez użycie operatora potoku "$|$" analogicznego do tego wytępującego w powłoce Bash.
 
 \begin{lstfloat}[H]
 \lstset{language=C++}
@@ -292,7 +292,7 @@ Wynik: 0 4 8 12 16
 \end{lstfloat}
 
 \subsubsection{Distributed Ranges}
-Podobnie jak opisana wyżej biblioteka z C++ 20, distributed ranges wprowadza kilka konceptów na których bazowane są struktury. Najważniejszym z tych konceptów jest \texttt{distributed\_range} opisany tak jak na listingu \ref{lst:distributed_range} w pliku \emph{concepts.hpp}.
+Podobnie jak opisana wyżej biblioteka z C++20, Distributed Ranges wprowadza kilka konceptów, na których oparte są struktury. Najważniejszym z tych konceptów jest \texttt{distributed\_range} opisany tak jak na listingu \ref{lst:distributed_range}, w pliku \emph{concepts.hpp}.
 
 \begin{lstfloat}[H]
 \lstset{language=C++}
@@ -305,24 +305,25 @@ concept distributed_range =
 \label{lst:distributed_range}
 \end{lstfloat}
 
-Ponadto, biblioteka jest podzielona na dwie przestrzenie nazw czyli \texttt{dr::mhp} oraz \texttt{dr::shp}. Na potrzeby mojego projektu bardziej interesującą częścią biblioteki jest zdecydowanie mhp. Udostępnia ona dwie struktury danych \texttt{dr::mhp::distributed\_vector} oraz \texttt{dr:mhp::distributed\_dense\_matrix}. Udostępnione dla tych struktur operacje mogą być wykorzystywane do programowania systemów komputerowych z pamięcią rozproszoną poprzez użycie połączenia MPI oraz SYCL. Druga część biblioteki pozwala, tak jak mhp oraz SYCL, na wykorzystanie kilku CPU/GPU, jednak w jednym procesie i tylko na jednym węźle. Niestety \texttt{dr::shp} jest bardziej rozwinięta i posiada więcej funkcji oraz narzędzi które jeszcze nie zostały zaimplementowane w mhp. Dla obu części istnieje obecnie zbiór widoków pozwalających na przeprowadzanie operacji w sposób identyczny jak w \texttt{<ranges>}.
+Ponadto, biblioteka jest podzielona na dwie przestrzenie nazw czyli \texttt{dr::mhp} oraz \texttt{dr::shp}. Na potrzeby naszego projektu bardziej interesującą częścią biblioteki jest zdecydowanie mhp. Są w niej zdefiniowane dwie struktury danych: \texttt{dr::mhp::distributed\_vector} oraz \texttt{dr:mhp::distributed\_dense\_matrix}. Operacje udostępnione dla tych struktur mogą być wykorzystywane do programowania systemów komputerowych z pamięcią rozproszoną poprzez użycie połączenia MPI oraz SYCL. Druga część biblioteki pozwala, tak jak mhp oraz SYCL, na wykorzystanie kilku CPU/GPU, jednak w jednym procesie i tylko na jednym węźle. \texttt{dr::shp} jest bardziej rozwinięta i posiada więcej funkcji oraz narzędzi które jeszcze nie są zaimplementowane w mhp. Dla obu części istnieje obecnie zbiór widoków pozwalających na przeprowadzanie operacji w sposób identyczny jak w \texttt{<ranges>}.
 
 
 
 
 \section{Wybrane algorytmy}
-Aby porównać wydajność i łatwość w użyciu narzędzi opisanych w poprzednim podrozdziale, koniecznym jest dobór algorytmów których implementacje będą poddawane testom. Problemy które zostały wybrane na potrzeby projektu to
+Aby porównać wydajność i łatwość w użyciu narzędzi opisanych w poprzednim podrozdziale, koniecznym jest dobór algorytmów których implementacje będą poddawane testom. Problemy które wybrano na potrzeby projektu to
 \begin{itemize}
 \item całkowanie metodą Monte Carlo,
 \item metoda gradientu sprzężonego,
 \item szybka transformacja Fouriera.
 \end{itemize}
-Problemy zostały dalej opisane w kolejności od najprostszego w implementacji do najtrudniejszego.
+W dalszej części problemy opisano w kolejności od najprostszego w implementacji do najtrudniejszego.
 \subsection{Całkowanie metodą Monte Carlo}
 Metodami Monte Carlo nazywamy techniki i algorytmy uzyskiwania wyników operacji numerycznych poprzez wielokrotne losowe próbkowanie. Głównym twórcą metody był polski fizyk Stanisław Ulam, który zainspirowany hazardowymi nawykami swojego wójka nadał jej nazwę pochodzącą od kasyna Monte Carlo w Monako \cite{mc_beggining}.
-Obliczanie całki tą metodą to bardzo prosta operacja. Wystarczy wylosować dostateczną ilość punktów z podanego zakresu aby zapewnić wysoką dokładność wyniku i dla każdego z nich sprawdzić czy znajduje się on pod wykresem sprawdzanej funkcji. Dokładność wyników otrzymanych przez użycie tej metody zależy w dużej mierze od parametrów wybranego generatora liczb pseudolosowych.
+Obliczanie całki tą metodą to bardzo prosta operacja. Wystarczy wylosować dostateczną liczbę punktów z podanego zakresu aby zapewnić wysoką dokładność wyniku i dla każdego z nich sprawdzić czy znajduje się on pod wykresem sprawdzanej funkcji. Dokładność wyników otrzymanych przy użyciu tej metody zależy w dużej mierze od parametrów wybranego generatora liczb pseudolosowych.
 W projekcie obliczana jest całka funkcji stu-wymiarowej, co sprowadza się do obliczenia miary Jordana\cite{miara-jordana} stu-wymiarowej przestrzeni pod funkcją. Jako zakres całkowania przyjąłem hipersześcian współdzielący środek z układem współrzędnych. Zdecydowałem się na taki zabieg po to, aby zwiększyć ilość obliczeń, a tym samym czas wykonywania programu. 
 \subsection{Metoda gradientu sprzężonego}
+\theoremstyle{definition}
 Metoda gradientu sprzężonego (ang. \emph{conjugate gradient method}, CG) jest metodą numeryczną zaproponowaną w 1952 roku \cite{conjugate-gradient}, pozwalającą na rozwiązywanie układów równań liniowych w postaci $Ax = b$, których macierz $A$ spełnia następujące warunki:
 \begin{itemize}
 \item jest symetryczna $A^T=A$ co oznacza, że dla każdego $i, j$ prawdziwe jest równanie $a_{ij} = a_{ji}.$
@@ -330,87 +331,71 @@ Metoda gradientu sprzężonego (ang. \emph{conjugate gradient method}, CG) jest 
 \end{itemize}
 
 Symetryczność macierzy jest cechą dobrze znaną, jednak aby przybliżyć cechę dodatniej określoności należy wprowadzić kilka pojęć.
-\begin{description}
-\item[Pojęcie 1] Forma kwadratowa\cite{quadratic-form} to wielomian którego każda zmienna jest drugiego stopnia. Jej wzór można wyrazić w kilku formach. Jedną z nich jest
-$$f(x) = x^TAx,$$
-gdzie $A$ jest macierzą symetryczną zwaną macierzą formy kwadratowej $f$. Jeżeli przyjmiemy $A = [a_{ij}]$ to drugą formą jest
-$$f(x_1,x_2,\ldots,x_n) = \sum_{i=1}^n\sum_{j=1}^na_{ij}x_ix_j.$$
 
-\item[Pojęcie 2] Mówimy, że forma kwadratowa nad rzeczywistą przestrzenią liniową $V$ jest określona, jeżeli przyjmuje wartości tego samego znaku oraz nie zeruje się dla wszystkich punktów $x$ tej przestrzeni liniowej. Dodatkowo spośród form określonych można wyróżnić:
+\newtheorem{df}{Definicja} 
+\begin{df} 
+Formą kwadratową\cite{quadratic-form}, nazywamy wielomian, którego każda zmienna jest drugiego stopnia. Możemy ją uprościć do postaci:
+$$f(x) = x^TAx,$$
+gdzie $A$ jest macierzą symetryczną, zwaną macierzą formy kwadratowej $f$. Jeżeli przyjmiemy $A = [a_{ij}]$ to równoważną formą jest
+$$f(x_1,x_2,\ldots,x_n) = \sum_{i=1}^n\sum_{j=1}^na_{ij}x_ix_j.$$
+\end{df}
+
+\begin{df} 
+Mówimy, że forma kwadratowa nad rzeczywistą przestrzenią liniową $V$ jest określona, jeżeli przyjmuje wartości tego samego znaku dla wszystkich punktów $x$ tej przestrzeni liniowej. Dodatkowo spośród form określonych można wyróżnić:
 \begin{enumerate}
 \item $\forall x \in \mathbb{R}^n/\{0\}: f(x) > 0$ - formę dodatnio określoną, oraz
 \item $\forall x \in \mathbb{R}^n/\{0\}: f(x) < 0$ - formę ujemnie określoną.  
 \end{enumerate}
 Jeżeli natomiast forma jest równa zero dla wszystkich wartości $x$ to nazywamy ją zdegenerowaną.
+\end{df}
 
-\item[Pojęcie 3] Symetryczna macierz $A$ jest dodatnio określona kiedy jest macierzą dodatnio określonej formy kwadratowej $f(x) = x^TAx$.
-\end{description}
+\begin{df}
+Symetryczną macierz $A$ nazywamy dodatnio określoną kiedy jest macierzą dodatnio określonej formy kwadratowej $f(x) = x^TAx$.
+\end{df}
 
 Oznaczmy rozwiązanie układu $Ax = b$ jako $x_*.$
-\begin{description}
-\item[Pojęcie 4] Dwa niezerowe wektory $u$ i $v$ są sprzężone względem macierzy A, jeżeli spełniają równanie $u^TAv = 0.$ Sprzężoność jest relacją symetryczną.
-\end{description}
+
+\begin{df}
+Dwa niezerowe wektory $u$ i $v$ są sprzężone względem macierzy A, jeżeli spełniają równanie $u^TAv = 0.$
+\end{df}
+
 Przyjmując jako warunek symetryczność oraz dodatnią określoność macierzy możemy zapisać iloczyn skalarny:
 $$u^TAv = \langle u,Av\rangle = \langle Au, v \rangle = \langle A^Tu, v \rangle = \langle u, v \rangle_A.$$
 Znając warunek ortogonalności wektorów $\langle u, v\rangle = 0$ można zauważyć, że dwa wektory są wzajemnie sprzężone jeżeli są ortogonalne względem iloczynu skalarnego $\langle u, v \rangle_A.$
 
-\begin{description}
-\item [Pojęcie 5] Kolejnym niezbędnym pojęciem jest Baza, czyli zbiór wektorów $B$ należacych do jakiejś przestrzeni $V$ spełniający dwa warunki.
-\begin{enumerate}
-\item Generuje przestrzeń $V$, to znaczy każdy wektor z przestrzeni $V$ może być zapisany jako kombinacja liniowa wektorów ze zbioru $B.$
-\item jest liniowo niezależny.
-\end{enumerate}
 
-\item [Pojęcie 6] Kombinacją liniową układu wektorów $x_1, \cdots,x_n$ o współczynnikach $\alpha_1,\cdots,\alpha_n$ nazywamy wektor
+\begin{df}
+Kombinacją liniową układu wektorów $x_1, \ldots,x_n$ o współczynnikach $\alpha_1,\ldots,\alpha_n$ nazywamy wektor
 $$ x = \sum_{i=1}^n\alpha_ix_i = \alpha_1x_1 + \alpha_2x_2 + \ldots + \alpha_nx_n.$$
+\end{df}
 
-\item [Pojęcie 7] Mówimy, że ciąg wektorów $v_1, v_2, \ldots, v_k$ z przestrzeni $V$ jest liniowo niezależny, gdy istnieje ciąg skalarów $a_1, a_2, \ldots, a_n,$ które nie wszystkie są równe zero taki, że 
-$$ a_1v_1 + a_2v_2 + \ldots A_kv_k = \mathbf{0}, $$
-gdzie $\mathbf{0}$ oznacza wektor zerowy.
-\end{description}
+\begin{df}
+Mówimy, że ciąg wektorów $v_1, v_2, \ldots, v_k$ z przestrzeni $V$ jest liniowo niezależny, gdy równanie $$a_1v_1 + a_2v_2 + \ldots + a_kv_k = 0,$$ gdzie $\mathbf{0}$ oznacza wektor zerowy, jest spełnione tylko w przypadku gdy $a_i = 0$ dla $i = 1, 2, \ldots, k.$
+\end{df}
 
-Załóżmy, że $P = \{p_1, p_2, \ldots, p_n\}$ jest ciągiem $n$ wzajemnie sprzężonych względem $A$ kierunków $,$ czyli 
-$$\forall i, j \in \{ 1, 2, \ldots, n\} (i\neq j): p_i^TAp_j = 0 .$$
-Wtedy $P$ tworzy bazę $\mathbb{R}^n$. Wynika to z tego, że
-\begin{gather*}
-p, q \in P \\
-\begin{bmatrix}
-p_1 & p_2 & \cdots & p_n
-\end{bmatrix}
-\begin{bmatrix}
-a_{11} & a_{12} & \cdots & a_{1n} \\
-a_{21} & a_{22} & \cdots & a_{2n} \\
-\vdots & \vdots & \ddots & \vdots \\
-a_{n1} & a_{n2} & \cdots & a_{nn}
-\end{bmatrix}
-\begin{bmatrix}
-q_1 \\
-q_2 \\
-\vdots \\
-q_n
-\end{bmatrix}
-\\
-=
-\begin{bmatrix}
-(p_1a_{11} + p_2a_{21} + \cdots + p_na_{n1}) & (p_1a_{12} + \cdots + p_na_{n2}) & \cdots & (p_1a_{1n} + \cdots + p_na_{nn})
-\end{bmatrix}
-\begin{bmatrix}
-q_1 \\
-q_2 \\
-\vdots \\
-q_n
-\end{bmatrix}
-\\
-= 
-\begin{bmatrix}
-q_1(p_1a_{11} + p_2a_{21} + \cdots + p_na_{n1}) & \cdots & q_n(p_1a_{1n} + \cdots + p_na_{nn})
-\end{bmatrix}
-= p^TAq = 0;
-\\
-q_1(p_1a_{11} + p_2a_{21} + \cdots + p_na_{n1}) + \cdots + q_n(p_1a_{1n} + \cdots + p_na_{nn}) = 0.
-\end{gather*}
-Dzięki temu wektor wynikowy $x_*$ możemy przedstawić w postaci $x_* = \sum_{i=1}^n\alpha_ip_i.$ podstawiając to do układu równań $Ax = b$ otrzymujemy:
-$$ Ax_* = \sum^n_{i=1}\alpha_iAp_i = b. $$ Wymnożenie tego równania z wektorem $p_k^T$ daje nam:
+\begin{df} 
+Zbiór wektorów $B$ należacych do jakiejś przestrzeni $V$ spełniający dwa warunki:
+\begin{enumerate}
+\item Generuje przestrzeń $V$, to znaczy każdy wektor z przestrzeni $V$ może być zapisany jako kombinacja liniowa wektorów ze zbioru $B;$
+\item jest liniowo niezależny;
+nazywamy bazą przestrzeni wektorowej $V$.
+\end{enumerate}
+\end{df}
+
+
+Załóżmy, że $P = \{p_1, p_2, \ldots, p_n\}$ jest ciągiem $n$ parami sprzężonych względem $A$ kierunków, czyli 
+$$\forall i \neq j: p_i^TAp_j = 0 .$$
+
+Pokażemy, że $P$ tworzy bazę $\mathbb{R}^n.$ Załóżmy, że istnieje kombinacja liniowa układu $P$ dająca wektor zerowy:
+$$\alpha_1p_1 + \alpha_2p_2 + \ldots + \alpha_np_n = \mathbb{0}.$$
+Aby pokazać, że $\alpha_i = 0$ dla wszystkich $i=1,\ldots,n$ przemnóżmy powyższą kombinację obustronnie przez $p_i^TA.$
+$$p_i^TA(\alpha_1p_1 + \alpha_2p_2 + \ldots + \alpha_np_n) = p_i^TA\mathbb{0} = \mathbb{0}$$
+Wykorzystując wzajemną sprzężoność wektorów $p_i^TAp_j = 0$ dla $i \neq j$ otrzymujemy:
+$$\alpha_ip_i^TAp_i.$$ 
+Ponieważ $p_i^TAp_i \neq 0,$ można zapisać $\alpha_i = 0.$ 
+
+Zatem wektor wynikowy $x_*$ możemy przedstawić w postaci $x_* = \sum_{i=1}^n\alpha_ip_i.$ podstawiając to do układu równań $Ax = b$ otrzymujemy:
+$$ Ax_* = \sum^n_{i=1}\alpha_iAp_i = b. $$ Wymnożenie tego równania przez wektor $p_k^T$ daje nam:
 $$p_k^Tb = \sum_{i=1}^n\alpha_ip_k^TAp_i = \sum_{i=1}^n\alpha_i\langle p_k, p_i\rangle_A.$$
 Wiedząc, że $\langle p_k, p_i \rangle_A = 0$ dla każdego $k \neq i$ możemy dalej uprościć równanie do postaci:
 $$p_k^Tb = \alpha_k\langle p_k, p_k\rangle_A,$$ 
@@ -418,10 +403,10 @@ a więc
 $$ \alpha_k = \frac{\langle p_k, b \rangle }{\langle p_k, p_k \rangle_A}. $$
 Otrzymujemy w ten sposób metodę rozwiązywania $Ax = b.$ Należy znaleźć ciąg $n$ sprzężonych kierunków po czym obliczyć wpółczynniki $\alpha_k.$
 
-Odpowiednie dobranie wektorów $p_k,$ może sprawić, że nie będziemy potrzebowali ich wszystkich do uzyskania wystarczająco dobrego przybliżenia wyniku $x_*.$ Dlatego, chcemy przedstawić CG jako metodę iteracyjną aby zmniejszyć czas wykonywania.
+Odpowiednie dobranie wektorów $p_k,$ może sprawić, że nie będziemy potrzebowali ich wszystkich do uzyskania wystarczająco dobrego przybliżenia wyniku $x_*.$
 
-\begin{description}
-\item[Pojęcie 8] Gradient $f'(x)$ formy kwadratowej w postaci $f(x) = \frac{1}{2}x^TAx - b^Tx + c$ definiujemy jako
+\begin{df}
+Gradientem funkcji $f$ nazywamy:
 \[
 f'(x) = 
 \begin{bmatrix}
@@ -432,31 +417,27 @@ f'(x) =
 \end{bmatrix}
 .
 \]
-Ten gradient, to pole wektorowe które dla danego punktu $x$, wskazuje kierunek największego przyrostu $f(x)$. Przekształcenie dokonane przez Schmidta \cite{gradient_quadratic} \emph{(notatka: https://www.cs.ubc.ca/\textasciitilde schmidtm/Courses/340-F16/linearQuadraticGradients.pdf czy mogę tego użyć? Jeśli tak to w jaki sposób coś takiego dodać do bibliografii? Tu jest konieczny długi kawał całkowania w przeciwnym wypadku. Tutaj jest jeszcze dodatkowe rozwiązanie tego problemu bez zmiany znaku z + na - w jednym miejscu https://math.stackexchange.com/questions/222894/how-to-take-the-gradient-of-the-quadratic-form)}
-doprowadza nas do formy $f'(x) = \frac{1}{2}(A^T + A)x - b,$ co dla macierzy symetrycznej daje
-$$f'(x) = Ax - b.$$
-\end{description}
+Gradient, to wektor, który dla danego punktu $x$, wskazuje kierunek największego przyrostu $f(x)$.
+\end{df}
 
-Przyjmijmy $x_0 = 0$ jako punkt startowy. Można zauważyć, że rozwiązanie $X_*$ minimalizuje formę kwadratową. Załóżmy, że x jest punktem który rozwiązuje $Ax = b$ oraz minimalizuje formę kwadratową w postaci $f(x) = \frac{1}{2}x^TAx - b^Tx + c$ oraz przyjmijmy $e$ jako dowolny wyraz. Wtedy otrzymujemy
+Rozpatrzmy formę kwadratową o postaci $$f(x) = \frac{1}{2}x^TAx - b^Tx + c.$$ Można dokonać przekształcenia \cite{gradient-quadratic, gradient-quadratic2}, które
+doprowadzą nas do wzoru $f'(x) = \frac{1}{2}(A^T + A)x - b$ gradientu tej funkcji, co dla macierzy symetrycznej daje
+$$f'(x) = Ax - b.$$
+
+Przyjmijmy $x_0 = 0$ jako punkt startowy. Można zauważyć, że rozwiązanie $x_*$ minimalizuje formę kwadratową. Załóżmy, że $x$ jest punktem który rozwiązuje $Ax = b$ oraz minimalizuje formę kwadratową w postaci $f(x) = \frac{1}{2}x^TAx - b^Tx + c$ oraz przyjmijmy $\alpha$ jako dowolny wyraz. Wtedy otrzymujemy
 \begin{align*}
-f(x + e) &= \frac{1}{2}(x + e)^TA(x+e)-b^T(x+e)+c \\
-	&= \frac{1}{2}x^TAx+e^TAx+\frac{1}{2}e^TAe-b^Tx - b^Te+c \\
-	&= \frac{1}{2}x^TAx-b^Tx+c+e^Tb+\frac{1}{2}e^TAe-b^Te \\
-	&= f(x) + \frac{1}{2}e^TAe.
+f(x + \alpha) &= \frac{1}{2}(x + \alpha)^TA(x+\alpha)-b^T(x+\alpha)+c \\
+	&= \frac{1}{2}x^TAx+\alpha^TAx+\frac{1}{2}\alpha^TA\alpha-b^Tx - b^T\alpha+c \\
+	&= \frac{1}{2}x^TAx-b^Tx+c+\alpha^Tb+\frac{1}{2}\alpha^TA\alpha -b^T\alpha \\
+	&= f(x) + \frac{1}{2}\alpha^TA\alpha.
 \end{align*}
-Jeżeli A jest dodatnio określona to $e^TAe = 0,$ a więc $x$ minimalizuje $f.$
+Jeżeli A jest dodatnio określona to $\alpha^TA\alpha = 0,$ a więc $x$ minimalizuje $f.$
 Ten fakt sugeruje aby jako pierwszy wektor bazowy $p_1$ wybrać gradient w $x_0,$ który po podstawieniu do wzoru wynosi $-b.$ Pozostałe wektory w bazie będą sprzężone do tego gradientu skąd pochodzi nazwa metody. 
 
-Oznaczmy $r_k$ jako rezyduum w k-tym kroku.
-$$r_k = b - Ax_k$$skupić
-Jako, że założyliśmy sprzężoność kierunków $p_k,$ nie możemy wprost ruszać się w kierunku $r_k,$ musimy wybrać jako kolejny, kierunek najbliższy do $r_k$ pod warunkiem sprzężoności. To wyrażamy wzorem
+Oznaczmy
+$$r_k = b - Ax_k.$$
+Jako, że założyliśmy sprzężoność kierunków $p_k,$ nie możemy wprost ruszać się w kierunku $r_k,$ musimy wybrać jako kolejny, kierunek najbliższy do $r_k$ pod warunkiem sprzężoności. To wyrażamy wzorem:
 $$p_{k+1} = r_k - \frac{p_k^TAr_k}{p_k^TAp_k}p_k.$$ 
-
-
-
-
-
-
 
 
 Zgodnie z powyższym opisem metody, zapisać można algorytm rozwiązujący $Ax = b$ metodą gradientu sprzężonego w postaci kodu języka Python. Znajduje się on w listingu \ref{lst:cg_python}. Funkcja dla podanej symetrycznej, dodatnio określonej macierzy $A$, oraz wektora $b$ zwraca wynikowy wektor $X$ z podaną tolerancją błędu przybliżenia.
@@ -489,14 +470,14 @@ def conjugate_gradient(A, b, tolerance):
 \label{lst:cg_python}
 \end{lstfloat}
 
-\subsubsection{Potrzebne testowe dane wejściowe}
-Metoda CG rozwiązuje układ równań liniowych w postaci $Ax = b.$ Danymi wejściowymi więc będzie macierz $A$ oraz wektor $b$. Generacja wektora nie sprawia żadnego problemu, w projekcie generowany wektor zawiera liczby rzeczywiste z przedziału od $0$ do $40,$ gdyż nie musi on spełniać żadnych szczególnych warunków.
-Jako metodę generacji losowej macierzy symetrycznej, dodatnio określonej, przyjęty został następujący przepis.
+\subsubsection{Testowe dane wejściowe}
+Metoda CG rozwiązuje układ równań liniowych w postaci $Ax = b.$ Danymi wejściowymi więc będzie macierz $A$ oraz wektor $b$. Generacja wektora nie sprawia żadnego problemu. W projekcie generowany wektor zawiera liczby rzeczywiste z przedziału od $0$ do $40,$ gdyż nie musi on spełniać żadnych szczególnych warunków.
+Jako metodę generacji losowej macierzy symetrycznej, dodatnio określonej, przyjęto następujący przepis.
 \begin{enumerate}
 		\item Wygenerowanie symetrycznej macierzy zawierającej losowe wartości rzeczywiste od $0$ do $1.$ poprzez przypisywanie tej samej wartości do $a_{ij}$ oraz $a_{ji}$
 		\item Dodanie do wyniku poprzedniej operacji macierzy jednostkowej przemnożonej przez rozmiar macierzy. Ta operacja gwarantuje dodatnią określoność wynikowej struktury przez fakt, że każda symetryczna macierz dominująca jest dodatnio określona.
 \end{enumerate}
-W praktyce jednak drugi krok często nie jest konieczny gdyż bardzo duża ilość macierzy wygenerowanych tylko krokiem pierwszym jest dodatnio określona.
+W praktyce drugi krok często nie jest konieczny, gdyż bardzo duża ilość macierzy wygenerowanych tylko krokiem pierwszym jest dodatnio określona.
 Kod w języku Python realizujący sposób na generację $A$ znajduje się w listingu \ref{lst:gen_spd_matrix}. Jedyną daną wejściową \texttt{n} jest żądana wielkość macierzy.
 
 \begin{lstfloat}[H]
@@ -517,20 +498,20 @@ def generate_spd_matrix(n):
 \end{lstfloat}
 
 \subsection{Szybka transformacja Fouriera}
-Transformata Fouriera to funkcja nazwana na cześć Jeana Baptiste'a Josepha Fouriera, francuskiego matematyka, który odkrył, że dowolny sygnał okresowy może zostać przedstawiony w postaci szeregu Fouriera. Jest to szereg pozwalający opisać dowolną funkcję okresową jako kombinację liniową funkcji trygonometrycznych o różnych częstotliwościach będących wielokrotnością danej bazowej częstotliwości. Transformacja Fouriera to transformacja, która przekształca funkcję z dziedziny czasu w funkcję dziedziny częstotliwości. Wynikiem transformacji Fouriera jest funkcja nazywana transformatą Fouriera. Jako, że transformata operuje na funkcjach ciągłych, to nie jest możliwa do wykonania na rzeczywistych sygnałach próbkowanych. 
+Transformata Fouriera to funkcja nazwana na cześć Jeana Baptiste'a Josepha Fouriera, francuskiego matematyka, który odkrył, że dowolny sygnał okresowy może zostać przedstawiony w postaci szeregu Fouriera. Jest to szereg pozwalający opisać dowolną funkcję okresową jako kombinację liniową funkcji trygonometrycznych o różnych częstotliwościach będących wielokrotnością danej bazowej częstotliwości. Transformacja Fouriera to transformacja, która przekształca funkcję z dziedziny czasu w funkcję dziedziny częstotliwości. Wynikiem transformacji Fouriera jest funkcja nazywana transformatą Fouriera. Jako, że transformacja operuje na funkcjach ciągłych, to nie jest możliwa do wykonania na rzeczywistych sygnałach próbkowanych. 
 
 Dla sygnałów dyskretnych stosowana jest DFT (\emph{ang. Discrete Fourier Transform}, dyskretna transformacja Fouriera) która przekształca skończony ciąg próbek sygnału $(a_0,a_1,\cdots,a_{N-1}), a_i \in \mathbb{R}$ w ciąg składowych harmonicznych: $(A_0,A_1,\cdots,A_{N-1}),A_i \in \mathbb{C}.$
-Można to wyrazić wyrazić wzorem
+Dla $N$ oznaczającego liczbę próbek, oraz $a_n$ będącego wartością próbki sygnału można to wyrazić wyrazić wzorem
 $$A_k=\sum_{n=0}^{N-1}a_nw_N^{-kn}, 0 <= k <= N-1,
 w_N = e^{i\frac{2\pi}{N}},$$
-gdzie $i$ to jednostka urojona, $k$ to numer obliczanej harmonicznej, $n$ to numer próbki sygnału, $a_n$ to wartość próbki sygnału a $N$ to liczba próbek. Złożoność obliczeniowa wykonywania transformacji wyżej opisanym wzorem jest szacowana jako $O(N^2)$.
+gdzie $i$ to jednostka urojona, $k$ to numer obliczanej harmonicznej. Złożoność obliczeniowa wykonywania transformacji wyżej opisanym wzorem jest szacowana jako $O(N^2)$.
 
-Szybką transformacją Fouriera nazywamy algorytm który służy do wyznaczania dyskretnej transformaty Fouriera oraz transformaty do niej odwrotnej. Algorytmy obliczające FFT wykorzystują metodę dziel i zwycięzaj zmiejszając złozoność obliczeniową do $O(N\log_2N)$. Algorytm Cooleya-Tukeya to najbardziej rozpowszechniona wersja FFT.
+Szybką transformacją Fouriera (ang. \emph{(fast Fourier transform)}, FFT) nazywamy algorytm który służy do wyznaczania dyskretnej transformaty Fouriera oraz transformaty do niej odwrotnej. Algorytmy obliczające FFT wykorzystują metodę dziel i zwycięzaj zmiejszając złozoność obliczeniową do $O(N\log_2N)$. Algorytm Cooleya-Tukeya to najbardziej rozpowszechniona wersja FFT.
 
 \subsubsection{Algorytm Cooleya-Tukeya}
-Zwany również jako "FFT o podstawie 2"(ang. \emph{Radix-2 FFT}), algorytm Cooleya-Tukeya polega na rekurencyjnym dzieleniu problemu na mniejsze DFT dzieląc je na ciąg wpisów o indeksach parzystych i drugi o indeksach nieparzystych.\cite{CooleyTukey} Aby dokonać takiego podziału, wielkość wejściowego ciągu danych musi być potęgą liczby 2: $N = 2^n.$ Przypadkiem bazowym dla takiego podejścia jest ciąg o rozmiarze $N = 1.$
+Znany również jako "FFT o podstawie 2"(ang. \emph{Radix-2 FFT}), algorytm Cooleya-Tukeya polega na rekurencyjnym dzieleniu problemu na mniejsze DFT dzieląc je na ciąg wpisów o indeksach parzystych i drugi o indeksach nieparzystych.\cite{CooleyTukey} Aby dokonać takiego podziału, wielkość wejściowego ciągu danych musi być potęgą liczby 2: $N = 2^n.$ Przypadkiem bazowym dla takiego podejścia jest ciąg o rozmiarze $N = 1.$
 
-Biorąc pod uwagę potrzebę zrównoleglenia działań wykonywanych w przebiegu projektu, metoda rekurencyjna utrudniałaby produktywną pracę. Potrzebna więc jest metoda iteracyjna. Aby ją przygotować, ważnym działaniem jest odwrócenie bitowe indeksów w wektorze wejściowym, co ułoży je w sposób identyczny do tego, który został by uzyskany poprzez wielokrotny podział. Zjawisko to jest pokazane w tabeli \ref{tab:bit_reversal} w której zapisałem liczby z zakresu 0 do 7 odwrócone bitowo, oraz na rysunku \ref{fig:bit_reversal} który reprezentuje graficznie podział ciągu 8 liczb, tak jak miałoby to miejsce przy podejściu rekurencyjnym. Reprezentację algorytmu Cooleya-Tukeya w języku Python przedstawiłem w listingu \ref{lst:fft_python}.
+Biorąc pod uwagę potrzebę zrównoleglenia działań wykonywanych w przebiegu projektu, metoda rekurencyjna utrudniałaby produktywną pracę. Potrzebna więc jest metoda iteracyjna. Aby ją przygotować, ważnym działaniem jest odwrócenie bitowe indeksów w wektorze wejściowym, co ułoży je w sposób identyczny do tego, który zostałby uzyskany poprzez wielokrotny podział. Zjawisko to jest pokazane w tabeli \ref{tab:bit_reversal}, w której zapisano liczby z zakresu od 0 do 7 odwrócone bitowo, oraz na rysunku \ref{fig:bit_reversal}, który reprezentuje graficznie podział ciągu 8 liczb, tak jak miałoby to miejsce przy podejściu rekurencyjnym. Reprezentację algorytmu Cooleya-Tukeya w języku Python przedstawiłem na listingu \ref{lst:fft_python}.
 
 \begin{table}[H]
 \begin{adjustbox}{max width=\textwidth}
@@ -586,16 +567,16 @@ def fft(input_arr):
 \caption{Implementacja algorytmu Cooleya-Tukeya w języku Python}
 \label{lst:fft_python}
 \end{lstfloat}
-\subsubsection{Potrzebne testowe dane wejściowe}
-Do poprawnego działania algorytmu Cooleya-Tukeya potrzebny jest wektor o długości $N = 2^n,$ gdzie $n \in \mathbb{N}$. W projekcie użyłem wektora liczb zespolonych zawierającego liczby, których część rzeczywista jest losowana z przedziału 0 do 1,a część urojona jest równa 0. Oznacza to, że przypomina ona sygnał złożony z liczb rzeczywistych z taką różnicą, że tablicę wejściową można modyfikować wynikami uzyskanymi w trakcie transformacji które są liczbami zespolonymi.
+\subsubsection{Testowe dane wejściowe}
+Do poprawnego działania algorytmu Cooleya-Tukeya potrzebny jest wektor o długości $N = 2^n,$ gdzie $n \in \mathbb{N}$. W projekcie użyłem wektora liczb zespolonych, zawierającego liczby, których część rzeczywista jest losowana z przedziału 0 do 1,a część urojona jest równa 0. Oznacza to, że przypomina ona sygnał złożony z liczb rzeczywistych ale tablicę wejściową można modyfikować wynikami uzyskanymi w trakcie transformacji, które są liczbami zespolonymi.
 \section{Przygotowanie środowiska}
 Wszystkie testy oraz cała konfiguracja została wykonana na komputerze wyposażonym w 6-rdzeniowy, 12-wątkowy procesor AMD Ryzen 5 5600 z dostępem do 32 GB pamięci RAM.
 Systemem operacyjnym zainstalowanym na komputerze jest Debian 12.
 \subsection{Konfiguracja CMake}
-W projekcie zostało użyte dobrze znane narzędzie do zarządzania procesem kompilacji programu "CMake". W przypadku programów sekwencyjnych oraz MPI nie korzystałem z CMake ponieważ nie było takiej potrzeby.
-Dla SYCL bardzo wygodnym i przydatnym narzędziem była funkcja \texttt{CMAKE\_EXPORT\_COMPILE\_COMMANDS} na potrzeby programu clangd. W tym przypadku narzędzie zostało użyte w większości dla własnej wygody. Bardzo podstawowym przykładem zawartości pliku konfiguracyjnego \emph{CMakeLists.txt} może być ten zawarty w listingu \ref{lst::cmake-SYCL}
+W projekcie użyto szeroko znanego narzędzia do zarządzania procesem kompilacji, programu "CMake". W przypadku programów sekwencyjnych oraz MPI nie skorzystano z CMake, ponieważ nie było takiej potrzeby.
+Dla SYCL bardzo wygodnym i przydatnym narzędziem była funkcja \texttt{CMAKE\_EXPORT\_COMPILE\_COMMANDS} na potrzeby programu clangd. W tym przypadku narzędzia użyto w większości dla zwiększenia wygody pracy. Bardzo podstawowym przykładem zawartości pliku konfiguracyjnego \emph{CMakeLists.txt} może być ten zawarty w listingu \ref{lst::cmake-SYCL}.
 
-\begin{lstfloat}[H]
+\begin{lstfloat}
 \begin{lstlisting}[frame=single]
 cmake_minimum_required(VERSION 3.0)
 
@@ -614,32 +595,32 @@ add_executable(main ${SOURCES})
 \label{lst::cmake-SYCL}
 \end{lstfloat}
 
-Biblioteka Distributed Ranges przysporzyła pewnych kłopotów. Na dzień w którym przygotowywałem środowisko do użycia narzędzia, rozwiązanie z repozytorium projektu w serwisie GitHub nie działało poprawnie. Wziąłem więc przykład z pobocznego repozytorium zawierającego przykładowy projekt używający tej biblioteki. \cite{dist-ranges-tutorial}
+Biblioteka Distributed Ranges przysporzyła pewnych kłopotów. Na dzień w którym przygotowywałem środowisko do użycia narzędzia, rozwiązanie z repozytorium projektu w serwisie GitHub nie działało poprawnie. Jako przykład wzięto rozwiązanie z pobocznego repozytorium, zawierającego przykładowy projekt używający tej biblioteki \cite{dist-ranges-tutorial}.
 \subsection{Użyte Kompilatory}
-Kompilując programy spełniające sekwencyjne podejście do wybranych problemów użyta została Kolekcja Kompilatorów GNU (ang. \emph{GNU Compiler Collection}, GCC) dołączona w systemie Debian.
+Kompilując programy spełniające sekwencyjne podejście do wybranych problemów użyto Kolekcji Kompilatorów GNU (ang. \emph{GNU Compiler Collection}, GCC) dołączonej w systemie Debian.
 
-Bardzo ważną częścią konfiguracji jest zestaw narzędzi oneAPI udostępniany przez firmę Intel. Pozostałe kompilatory użyte do obsługi MPI, SYCL a także Distributed Ranges pochodzą z tej właśnie kolekcji. Poradnik instalacji paczki dla systemów z grupy GNU/Linux znajduje się pod adresem przypisanym do pozycji \cite{oneapi-install} z bibliografii. Koniecznym działaniem do zapewnienia poprawnego przygotowanych przeze mnie programów jest uruchomienie skryptu ustawiającego odpowiednie zmienne w powłoce. Domyślną ścieżką tego skryptu po instalacji zestawu oneAPI jest \emph{/opt/intel/oneapi/setvars.sh}.
+Bardzo ważną częścią konfiguracji jest zestaw narzędzi oneAPI udostępniany przez firmę Intel. Pozostałe kompilatory użyte do obsługi MPI, SYCL a także Distributed Ranges pochodzą z tej właśnie kolekcji. Poradnik instalacji paczki dla systemów z grupy GNU/Linux znajduje się pod adresem \cite{oneapi-install}. Aby zapewnić poprawnie działanie przygotowanych w ramach projektu programów należy uruchomić skrypt ustawiający odpowiednie zmienne w powłoce. Domyślną ścieżką tego skryptu po instalacji zestawu oneAPI jest \emph{/opt/intel/oneapi/setvars.sh}.
 
-Użyte kompilatory do poszczególnych narzędzi:
+Kompilatory użyte do poszczególnych narzędzi:
 \begin{itemize}
-\item Programy Sekwencyjne - \textbf{gcc/g++}
-\item MPI - \textbf{mpicxx}
-\item SYCL oraz Distributed Ranges - \textbf{icx/icpx}
+\item Programy Sekwencyjne - \textbf{gcc/g++},
+\item MPI - \textbf{mpicxx},
+\item SYCL oraz Distributed Ranges - \textbf{icx/icpx}.
 \end{itemize}
 
 \subsection{Inne narzędzia}
-Narzędziem którego użyłem przy pisaniu był program Scalasca opisany w tym artykule \cite{scalasca}. Aplikacja służy do analizy przebiegu programów równoległych napisanych przy użyciu modeli MPI oraz Open-MP. Okazało się ono bardzo przydatne do wykrywania problemów z wydajnością dla moich implementacji w języku MPI.
+Narzędziem, którego użyto przy pisaniu implementacji niektórych algorytmów był program Scalasca \cite{scalasca}. Aplikacja służy do analizy przebiegu programów równoległych napisanych przy użyciu modeli MPI oraz Open-MP. Okazało się ono bardzo przydatne do wykrywania problemów z wydajnością dla moich implementacji w języku MPI.
 
-Pragnę również wspomnieć o pewnym niezbyt istotnym, niemniej jednak niewygodnym, problemie który napotkałem próbując skonfigurować clangd, serwer językowy usprawniający pisanie kodu poprzez dodanie funkcjonalności do edytora tekstu takich jak uzupełnianie kodu czy szybki dostęp do definicji. Okazało się bowiem iż zestaw oneAPI zawiera własną wersję tego narzędzia, znajduje się ona pod ścieżką \emph{/opt/intel/oneapi/compiler/latest/bin/compiler/clangd}. Niestety podana kompilacja nie wykrywała poprawnie plików nagłówkowych zawartych we własnym zestawie co zmusiło mnie do własnoręcznej kompilacji narzędzia z odpowiednim kompilatorem (\texttt{icpx}).
+Zachodzi potrzeba wspomnienia o pewnym niewygodnym, problemie który pojawił się przy próbie konfiguracji \emph{clangd}, serwera językowego usprawniającego pisanie kodu poprzez dodanie funkcjonalności do edytora tekstu takich jak uzupełnianie kodu czy szybki dostęp do definicji. Okazało się bowiem, iż zestaw oneAPI zawiera własną wersję tego narzędzia, znajduje się ona pod ścieżką \emph{/opt/intel/oneapi/compiler/latest/bin/compiler/clangd}. Niestety podana kompilacja nie wykrywała poprawnie plików nagłówkowych zawartych we własnym zestawie, co wymagało własnoręcznej kompilacji narzędzia z odpowiednim kompilatorem (\texttt{icpx}).
 
-W katalogu głównym projektu zamieściłem skrypt \emph{build\_all.sh} służący do kompilacji wszystkich plików źródłowych i zapisania ich w katalogu \emph{build/.}
+W katalogu głównym projektu zamieściłem skrypt \emph{build\_all.sh} służący do kompilacji wszystkich plików źródłowych i zapisania ich w katalogu \emph{build.}
 
 \chapter{Problemy implementacyjne}
-Podczas implementacji rozwiązań poszczególnych problemów, często pojawiały się specyficzne do danego narzędzia problemy. Zostały one opisane w podrozdziałach razem z opisem działania oraz komentarzem na temat finalnych czasów wykonania każdego podejścia.
+Podczas implementacji rozwiązań poszczególnych problemów, często pojawiały się specyficzne dla danego narzędzia problemy. Opisano je w podrozdziałach razem z dokładniejszym wytłumaczeniem działania oraz komentarzem na temat finalnych czasów wykonania każdego podejścia.
 \section{Całkowanie metodą Monte Carlo}
-Metoda Monte Carlo jest najłatwiejszą w implementacji częścią projektu. Wynika to z tego że problem jest zawstydzająco równoległy, Jedyna komunikacja jaka zachodzi w przypadku rozwiązań równoległych, to końcowe zebranie danych do jednej zmiennej wątku głównego w celu obliczenia finalnego wyniku.
+Metoda Monte Carlo jest najłatwiejszą w implementacji częścią projektu. Wynika to z tego, że problem jest zawstydzająco równoległy. Jedyna komunikacja jaka zachodzi w przypadku rozwiązań równoległych, to końcowe zebranie danych do jednej zmiennej wątku głównego w celu obliczenia finalnego wyniku.
 \subsection{Przegląd krytycznych części programu}
-Bardzo ważną kwestią do omówienia w przypadku metody Monte Carlo jest dobór odpowiedniego generatora liczb pseudolosowych. Do tego celu wykorzystany został generator z biblioteki standardowej języka C++ \texttt{std::minstd\_rand.} Wyborem kierowała dostępność w każdym z użytych narzędzi tak aby uzyskać porównywalne czasy wykonania. W przypadku modelu SYCL oraz biblioteki Distributed Ranges, ze względu na ich specyfikę, konieczne było użycie generatora z nagłówka \texttt{<oneapi/dpl/random>} o takiej samej nazwie (\texttt{oneapi::dpl::minstd\_rand}). Konfiguracja tych dwóch implementacji jest pokazana w Listingach \ref{lst:minstd-rand} i \ref{lst:minst-rand-SYCL}.
+Bardzo ważną kwestią w przypadku metody Monte Carlo jest dobór odpowiedniego generatora liczb pseudolosowych. Do tego celu wykorzystano generator z biblioteki standardowej języka C++ \texttt{std::minstd\_rand.} Ten generator wybrano ze względu na dostępność w każdym z użytych narzędzi. W przypadku modelu SYCL oraz biblioteki Distributed Ranges konieczne było użycie generatora z nagłówka \texttt{<oneapi/dpl/random>} o takiej samej nazwie (\texttt{oneapi::dpl::minstd\_rand}). Konfiguracja tych dwóch implementacji jest pokazana na listingach \ref{lst:minstd-rand} i \ref{lst:minst-rand-SYCL}.
 
 \begin{lstfloat}
 \lstset{language=C++}
@@ -665,9 +646,9 @@ oneapi::dpl::uniform_real_distribution<double> dis(a, b);
 \label{lst:minst-rand-SYCL}
 \end{lstfloat}
 
-Funkcja której całkę obliczają poszczególne implementacje może być zapisana jako 
-$$ f(x) = e^{\sum^n_{i=1}x_i^6} $$ gdzie $x$ jest wektorem wejściowym.
-Implementacja tej funkcji wygląda tak samo w każdym z programów. Można ją zobaczyć w Listingu \ref{lst:calkowana-funkcja}
+Poszczególne programy obliczają całkę funkcji
+$$ f(x) = \sin{(\sum^n_{i=1}x_i^6)} $$ gdzie $x$ jest wektorem wejściowym.
+Implementacja tej funkcji wygląda tak samo w każdym z programów. Można ją zobaczyć na listingu \ref{lst:calkowana-funkcja}.
 
 \begin{lstfloat}
 \lstset{language=C++}
@@ -683,7 +664,7 @@ double f(std::vector<double> &x) {
 \label{lst:calkowana-funkcja}
 \end{lstfloat}
 
-Główna pętla programu polega na wygenerowaniu punktu w przestrzeni sto-wymiarowej i zwiększaniu licznika w przypadku kiedy punkt znajduje się pod wykresem. Pokazane to zostało w Listingu \ref{lst:monte-carlo}
+Główna pętla programu polega na wygenerowaniu punktu i zwiększaniu licznika w przypadku kiedy punkt znajduje się pod wykresem. Pokazano to na listingu \ref{lst:monte-carlo}.
 
 \begin{lstfloat}
 \lstset{language=C++}
@@ -704,7 +685,7 @@ Główna pętla programu polega na wygenerowaniu punktu w przestrzeni sto-wymiar
 \end{lstfloat}
 
 \subsection{Ostateczny czas wykonania - komentarz}
-Pokazany na Rysunku \ref{fig:wykonanie-MC} wykres przedstawia całkowity czas wykonania dla wszystkich wykonanych implementacji. Czas został zmierzony przy użyciu narzędzia \texttt{/usr/bin/time} będącego zamiennikiem wbudowanego jako słowo kluczowe powłoki bash programu \texttt{time.} \texttt{/usr/bin/time} daje większą ilość informacji, na przykład o ilości błędów strony (ang. \emph{page fault}). Ilość iteracji wynosi $120000000.$
+Pokazany na rysunku \ref{fig:wykonanie-MC} wykres przedstawia całkowity czas wykonania dla wszystkich wykonanych implementacji. Czas zmierzono przy użyciu narzędzia \texttt{/usr/bin/time} będącego zamiennikiem słowa kluczowego powłoki Bash \texttt{time.} \texttt{/usr/bin/time} daje większą ilość informacji, na przykład o liczbie błędów strony (ang. \emph{page fault}). Liczba wygenerowanych punktów wynosi $120000000.$
 
 \begin{figure}
 	\centering
@@ -713,13 +694,13 @@ Pokazany na Rysunku \ref{fig:wykonanie-MC} wykres przedstawia całkowity czas wy
 	\label{fig:wykonanie-MC}
 \end{figure}
 
-Jak widać, SYCL poradził sobie najlepiej z programów równoległych. Przyczyną tego jest zapewne wykorzystanie generatora liczb pseudolosowych z przestrzeni nazw \texttt{oneapi::dpl.} Przyspieszenie uzyskane przez narzędzia programowania równoległego w przypadku wykorzystania 6 wątków jest blisko sześciokrotne czyli bliskie idealnemu.
+Sycl uzyskał najlepszy wynik z programów równoległych. Przyczyną tego jest wykorzystanie generatora liczb pseudolosowych z przestrzeni nazw \texttt{oneapi::dpl.} Przyspieszenie uzyskane przez narzędzia programowania równoległego w przypadku wykorzystania 6 wątków jest prawie sześciokrotne, czyli bliskie idealnemu.
 
 \section{Metoda gradientu sprzężonego}
-Metoda gradientu sprzężonego jest metodą iteracyjną w której obliczenia wykonywane w poszczególnych krokach są zależne od poprzedniego kroku. Ze względu na ten fakt, nie można nazwać problemu zawstydzająco równoległym. Przyspieszenie jest jednak możliwe do uzyskania poprzez równoleglizację operacji cząstkowych wykonywanych w ramach głównej pętli.
+Metoda gradientu sprzężonego jest metodą iteracyjną w której obliczenia wykonywane w poszczególnych krokach są zależne od poprzedniego kroku. Ze względu na to, nie można nazwać problemu zawstydzająco równoległym. Przyspieszenie jest jednak możliwe do uzyskania poprzez równoleglizację operacji cząstkowych wykonywanych w ramach głównej pętli.
 
 \subsection{Przegląd krytycznych części programu}
-Najbardziej kluczowa funkcja w programie zawierająca jej główną pętle jest bardzo podobna w każdej z implementacji. Kod pokazany w Listingu \ref{lst:conjugate_gradient} przedstawia tę funkcję w jej sekwencyjnej wersji. Używając narzędzi SYCL, MPI oraz Distributed Ranges zrównoleglizowane zostało kilka funkcji z tej pętli.
+Funkcja zawierająca główną pętle programu jest bardzo podobna w każdej z implementacji. Kod pokazany na listingu \ref{lst:conjugate_gradient} przedstawia tę funkcję w jej sekwencyjnej wersji. Używając narzędzi SYCL, MPI oraz Distributed Ranges zrównoleglizowano kilka funkcji z tej pętli.
 
 \begin{lstfloat}
 \lstset{language=C++}
@@ -765,18 +746,19 @@ vec conjugate_gradient(const vec &A, const vec &B) {
 \end{lstfloat}
 
 \begin{itemize}
-\item \texttt{vector\_combination} to funkcja przeprowadzająca kombinację liniową dwóch wektorów. Rownoleglizowana jest poprzez podział wektora na kilka części i wykonanie pracy przez poszczególne wątki. W większości przypadków jest to robione automatyczie przez wykorzystane narzędzie. Przykład takiego zachowania widać na Listingu \ref{lst:vector-combination}, gdzie pokazana jest implementacja tej funkcji w SYCL.
-\item \texttt{inner\_product} wykonuje iloczyn skalarny dwóch wektorów. Do tego problemu są dwa podejścia. W przypadku SYCL, każdy wątek może dodawać wyniki mnożenia do wspólnej zmiennej. MPI oraz Distributed Ranges wymagają jednak wykonania dodatkowo operacji redukcji (ang. \emph{reduce}). Jest to zobrazowane we fragmencie kodu z implementacji z użyciem biblioteki Distributed Ranges zawartego w Listingu \ref{lst:inner-product}.
-\item \texttt{norm} to funkcja obliczająca normę wektora. Jest to operacja bardzo podobna do obliczania iloczynu skalarnego.
-\item \texttt{matrix\_vector\_multiply} ma za zadanie przemnożenie macierzy przez wektor dając nowy wektor wynikowy. Wykonywanie tej funkcji zajmuje programowi najwięcej czasu więc jest ona punktem krytycznym. 
+\item \texttt{vector\_combination} to funkcja przeprowadzająca kombinację liniową dwóch wektorów. Równoleglizowana jest poprzez podział wektora na kilka części i wykonanie pracy przez poszczególne wątki. W większości przypadków jest to przeprowadzane automatyczie przez wykorzystane narzędzie. Przykład takiego zachowania widać na Listingu \ref{lst:vector-combination}, gdzie pokazana jest implementacja tej funkcji w SYCL.
+\item \texttt{inner\_product} wykonuje iloczyn skalarny dwóch wektorów. Do tego problemu są dwa podejścia. W przypadku SYCL, każdy wątek może dodawać wyniki mnożenia do wspólnej zmiennej. MPI oraz Distributed Ranges wymagają jednak wykonania dodatkowo operacji redukcji (ang. \emph{reduce}). Jest to zobrazowane we fragmencie kodu z implementacji z użyciem biblioteki Distributed Ranges zawartego na listingu \ref{lst:inner-product}.
+\item \texttt{norm} to funkcja obliczająca normę euklidesową wektora. $$||x||_2 = \sqrt{\sum_{i=1}^Nx^2_i}, x = (x_1,x_2,\cdots,x_N) \in \mathbb{R}^N$$
+\item \texttt{matrix\_vector\_multiply} ma za zadanie przemnożenie macierzy przez wektor dając nowy wektor wynikowy. Wykonywanie tej funkcji zajmuje programowi najwięcej czasu, więc jest ona punktem krytycznym. 
 \end{itemize}
 
 \begin{lstfloat}
 \lstset{language=C++}
 \begin{lstlisting}[frame=single]
-	void vector_combination(sycl::queue &queue, sycl::buffer<double, 1> &vec1_buf,
-                        double mult, sycl::buffer<double, 1> &vec2_buf,
-                        int size) {
+void vector_combination(sycl::queue &queue, 
+		sycl::buffer<double, 1> &vec1_buf,
+        double mult, sycl::buffer<double, 1> &vec2_buf,
+        int size) {
   queue.submit([&](sycl::handler &h) {
     auto vec1 = vec1_buf.get_access<sycl::access::mode::read_write>(h);
     auto vec2 = vec2_buf.get_access<sycl::access::mode::read>(h);
@@ -797,7 +779,8 @@ vec conjugate_gradient(const vec &A, const vec &B) {
 template <dr::distributed_range X>
 double inner_product(X &&x, std::vector<double> &y) {
   auto zipped =
-      dr::mhp::views::zip(x, y) | dr::mhp::views::transform([](auto &&elem) {
+      dr::mhp::views::zip(x, y) | 
+      dr::mhp::views::transform([](auto &&elem) {
         auto &&[a, b] = elem;
         return a * b;
       });
@@ -809,18 +792,18 @@ double inner_product(X &&x, std::vector<double> &y) {
 \label{lst:inner-product}
 \end{lstfloat}
 
-Implementacja algorytmu przy pomocy narzędzia SYCL była bardzo łatwa i intuicyjna, operacje nie różniły się bardzo od tych które wykonane zostały w przypadku sekwencyjnym. Stworzenie działającego programu w 
+Implementacja algorytmu przy pomocy narzędzia SYCL była bardzo łatwa i intuicyjna, operacje nie różniły się bardzo od tych które wykonano w przypadku sekwencyjnym. 
 
-MPI wymagało większych przygotowań i przemyślenia podejmowanych działań. Ważnym punktem przemyśleń było odpowiednie zarządzanie pamięcią pomiędzy procesami. W przygotowanym kodzie, dane pobierane z pliku od razu dzielone są na równe części tak aby nie zwiększać czasu poprzez komunikację. Jedyną tablicą, która jest przechowywana w całości w każdym z procesów jest zmienna \texttt{search\_dir.} Jest tak dlatego, że w każdym z kroków macierz $A$, która jest podzielona tak aby każdy proces miał kilka z jej wierszy, jest mnożona przez ten wektor.
+Stworzenie działającego programu w MPI wymagało większych przygotowań i przemyślenia podejmowanych działań. Ważnym punktem rozważań było odpowiednie zarządzanie pamięcią pomiędzy procesami. W przygotowanym kodzie dane pobierane z pliku od razu dzielone są na równe części, aby nie zwiększać czasu poprzez komunikację. Jedyną tablicą, która jest przechowywana w całości w każdym z procesów jest zmienna \texttt{search\_dir.} Jest tak dlatego, że w każdym z kroków macierz $A$, która jest podzielona tak, aby każdy proces miał kilka z jej wierszy, jest mnożona przez ten wektor.
 
-Największym problemem była operacja mnożenia macierzy przez wektor z wykorzystaniem biblioteki Distributed Ranges. O ile przestrzeń nazw \texttt{shp} posiada gotową implementacje dla tej operacji, \texttt{mhp} jest w tym zakresie o wiele bardziej uboga. Do implementacji zaszła potrzeba wykorzystania segmentów macierzy udostępnianych przez strukturę \texttt{dr::mhp::distributed\_vector.} W tym wypadku kod przypomina ten z implementacji MPI i musi być spełniony jeden warunek, wielkość macierzy musi być podzielna przez liczbę użytych procesów. Ten fragment kodu został pokazany w Listingu \ref{lst:dist-ranges-mat-vec}.
+Największym problemem była operacja mnożenia macierzy przez wektor z wykorzystaniem biblioteki Distributed Ranges. O ile przestrzeń nazw \texttt{shp} posiada gotową implementacje dla tej operacji, \texttt{mhp} jest w tym zakresie o wiele bardziej uboga. Do implementacji zaszła potrzeba wykorzystania segmentów macierzy udostępnianych przez strukturę \texttt{dr::mhp::distributed\_vector.} W tym wypadku kod przypomina ten z implementacji MPI i spełnia jeden warunek, wielkość macierzy musi być podzielna przez liczbę użytych procesów. Ten fragment kodu pokazano w Listingu \ref{lst:dist-ranges-mat-vec}.
 
 \begin{lstfloat}
 \lstset{language=C++}
 \begin{lstlisting}[frame=single]
 template <dr::distributed_range X, dr::distributed_range Y>
-void matrix_vector_multiply(X &&mat, std::vector<double> &vec, Y &&result,
-                            int size) {
+void matrix_vector_multiply(X &&mat, std::vector<double> &vec, 
+						   Y &&result,int size) {
   if (mhp::rank() == 0) {
     std::cout << "b\n";
   }
@@ -852,7 +835,7 @@ void matrix_vector_multiply(X &&mat, std::vector<double> &vec, Y &&result,
 \end{lstfloat}
 
 \subsection{Ostateczny czas wykonania - komentarz}
-Rysunek \ref{fig:wykonanie-cg} pokazuje czas wykonania operacji z użyciem różnych narzędzi. Czas był mierzony dla dziesięciu wykonań metody gradientu sprzężonego, gdzie macierz wejściowa ma długość i szerokość mierzącą $1296000000$ elementów. Jak łatwo zauważyć, biblioteka Distributed wypadła najgorzej, proces przebiegał wolniej nawet niż w implementacji sekwencyjnej. Analizując problem dało się odkryć, że ogromną ilość czasu zajmuje mnożenie macierzy przez wektor. Niestety pomimo starań nie udało się doprowadzić tej implementacji do prędkości porównywalnych z SYCL oraz MPI. Można domyślić się, że ten efekt jest wywołany próbami komunikacji pomimo odwoływania się do pamięci która powinna być rozpoznana jako lokalna. W dodatku, przyspieszenie uzyskane dla SYCL oraz MPI nie jest duże.
+Rysunek \ref{fig:wykonanie-cg} pokazuje czas wykonania operacji z użyciem różnych narzędzi. Czas był mierzony dla dziesięciu wykonań metody gradientu sprzężonego, gdzie macierz wejściowa ma długość i szerokość mierzącą $1296000000$ elementów. Jak łatwo zauważyć, biblioteka Distributed Ranges wypadła najgorzej, proces przebiegał wolniej nawet niż w implementacji sekwencyjnej. Analizując problem dało się odkryć, że ogromną ilość czasu zajmuje mnożenie macierzy przez wektor. Niestety pomimo starań nie udało się doprowadzić tej implementacji do prędkości porównywalnych z SYCL oraz MPI. Można domyślać się, że ten efekt jest wywołany próbami komunikacji pomimo odwoływania się do pamięci, która powinna być rozpoznana jako lokalna. W dodatku, przyspieszenie uzyskane dla SYCL oraz MPI nie jest duże.
 
 \begin{figure}
 	\centering
@@ -862,9 +845,10 @@ Rysunek \ref{fig:wykonanie-cg} pokazuje czas wykonania operacji z użyciem róż
 \end{figure}
 
 \section{Szybka transformacja Fouriera}
-Implementacja FFT okazała się najtrudniejszym problemem do rozwiązania. Jest to głównie zasługa potrzeby operowania na wektorze z bitowo odwróconymi indeksami przez co trzeba było umiejętnie rozdzielać dane oraz warunku, który jest nałożony na rozmiar danych wejściowych kiepsko współgrającego z liczbą rdzeni nie będącą potęgą liczby 2.
+Implementacja FFT okazała się najtrudniejszym problemem do
+rozwiązania. Warunkiem poprawnego działania algorytmu jest rozmiar wektora wejściowego będący potęgą liczby 2. Ze względu na potrzebę uruchomienia programu na komputerze z procesorem sześciordzeniowym, to ograniczenie rozmiarowe powodowało problemy przy podziale danych. Potrzeba operowania na zbiorze danych z indeksami odwróconymi bitowo także była czynnikiem, który wymagał ostrożności przy implementacji.
 \subsection{Przegląd krytycznych części programu}
-Po wczytaniu danych z pliku, indeksy tablicy liczb wygenerowanej przez osobny program muszą zostać odwrócone bitowo. O ile program sekwencyjny nie jest trudny w wykonaniu co widać na Listingu \ref{lst:bit-reverse-seq}, problem jest nietrywialny kiedy chcemy użyć pamięci rozproszonej. Ze względu na skończoną ilość pamięci operacyjnej komputera, oraz dużą ilość danych do przetworzenia, konieczne byłoby tutaj użycie wyspecjalizowanego algorytmu stworzonego do tego działania. Przez względnie wysoki poziom trudności utworzenia programu realizującego takie rozwiązanie, oraz porównywalnie małą ilość czasu zajmowaną przez tę operację, program napisany z użyciem modelu MPI korzysta z funkcji wprowadzonych w MPI-3 opisanych w dokumentacji \cite{mpi41}. Problem ten został rozwiązany w sposób pokazany w Listingu \ref{lst:bit-reverse-mpi}.
+Po wczytaniu danych z pliku, indeksy tablicy liczb wygenerowanej przez osobny program muszą zostać odwrócone bitowo. O ile program sekwencyjny nie jest trudny w wykonaniu co widać na Listingu \ref{lst:bit-reverse-seq}, problem jest nietrywialny kiedy chcemy użyć pamięci rozproszonej. Ze względu na skończoną ilość pamięci operacyjnej komputera, oraz dużą ilość danych do przetworzenia, konieczne byłoby tutaj użycie wyspecjalizowanego algorytmu stworzonego do tego działania. Przez wysoki poziom trudności utworzenia programu realizującego takie rozwiązanie, oraz porównywalnie małą ilość czasu zajmowaną przez tę operację, program napisany z użyciem modelu MPI korzysta z funkcji wprowadzonych w MPI-3 \cite{mpi41}. Problem ten rozwiązano w sposób pokazany na listingu \ref{lst:bit-reverse-mpi}.
 
 \begin{lstfloat}
 \lstset{language=C++}
@@ -929,7 +913,7 @@ void bit_reverse_indices(MPI_Win &win, Complex *global_array,
 \label{lst:bit-reverse-mpi}
 \end{lstfloat}
 
-Idąc dalej, główna pętla programu sekwencyjnego wygląda tak jak w Listingu \ref{lst:fft-seq}. Ważnym zabiegiem który musiał być zastosowany aby program był wykonywany szybko jest sekwencyjne liczenie potęgi liczby przechowywanej w zmiennej \texttt{omega}. Bez tego, wysokie potęgi tej liczby musiałyby być liczone przy każdej najmniejszej operacji wykonywanej przez program. Co ciekawe, kompilator SYCL poprawia naiwne liczenie tych potęg automatycznie nawet jeżeli użytkownik popełni taki błąd zachowując odpowiednią wydajność.
+Główna pętla programu sekwencyjnego wygląda tak jak na listingu \ref{lst:fft-seq}. Ważnym zabiegiem, który trzeba było zastosować aby program był wykonywany szybko, jest sekwencyjne liczenie potęgi liczby przechowywanej w zmiennej \texttt{omega}. Bez tego, wysokie potęgi tej liczby musiałyby być liczone przy każdej operacji wykonywanej przez program. Co ciekawe, kompilator SYCL poprawia naiwne liczenie tych potęg automatycznie, zachowując odpowiednią wydajność.
 
 \begin{lstfloat}
 \lstset{language=C++}
@@ -963,9 +947,9 @@ void fft(Complex *input_array, int size) {
 \label{lst:fft-seq}
 \end{lstfloat}
 
-Zarówno w przypadku MPI jak i SYCL ważną optymalizacją okazał się być podział problemu na dwa przypadki zależne od wielkości pojedynczego kroku. Należy zauważyć, że w przypadku gdy zmienna \texttt{step\_size} zawiera wartości bardzo małe, Lepszym rozwiązaniem jest zrównoleglenie pętli wewnętrznej czyli wykonywanie kilku kroków na raz aby ograniczyć komunikację między wątkami. W przypadku odwrotnym, nie byłoby wystarczająco wiele kroków aby podzielić je na kilkanaście wątków ale każdy krok operuje na ilości danych na tyle dużej, że komunikacja nie jest problemem. W MPI jest jeszcze jeden powód zastosowania takiego zabiegu. Podział danych utworzony na początku wymaga aby ilość danych trzymanych w lokalnie dla jednego wątku była podzielna przez rozmiar kroku. Jeżeli ten warunek nie zostanie zachowany to obliczenia nie zostaną wykonane poprawnie.
+Zarówno w przypadku MPI jak i SYCL, ważną optymalizacją był podział problemu na dwa przypadki zależne od wielkości pojedynczego kroku. Należy zauważyć, że w przypadku gdy zmienna \texttt{step\_size} zawiera wartości bardzo małe, lepszym rozwiązaniem jest zrównoleglenie pętli wewnętrznej, czyli wykonywanie kilku kroków na raz aby ograniczyć komunikację między wątkami. W przypadku odwrotnym nie byłoby wystarczająco wiele kroków aby podzielić je na kilkanaście wątków, ale każdy krok operuje na ilości danych na tyle dużej, że komunikacja nie jest problemem. Implementacja z użyciem MPI ma dodatkowy powód na zastosowanie takiego zabiegu. Podział danych utworzony na początku wymaga, aby ilość danych przychowywanych w lokalnie dla jednego wątku była podzielna przez rozmiar kroku. Jeżeli ten warunek nie zostanie zachowany, to obliczenia nie zostaną wykonane poprawnie.
 
-W przypadku MPI, podział danych pokazany W listingu \ref{lst:mpi-data-split} jest wystarczający do momentu gdy lokalny dla wątku rozmiar danych jest podzielny przez rozmiar kroku. W sytuacji gdy rozmiar kroku przekracza tę wartość, potrzebny jest nowy podział. Rozwiązanie zastosowane w tej implementacji jest proste. Dla każdego kroku następuje podział danych na tablicę przechowującą wartośći o indeksach  parzystych oraz drugą z indeksami nieparzystymi. Obliczenia wykonywane są jak dotychczas i dane są zwracane do jednego wątku aby można było powtórzyć proces. Listing \ref{lst:mpi-data-split2} zawiera kod dokonujący tego podziału. Niestety taka operacja wymaga dużej ilości komunikacji pomiędzy wątkami co odbije się znacznie na ostatecznym wyniku.
+W przypadku MPI, podział danych pokazany na listingu \ref{lst:mpi-data-split} jest wystarczający do momentu gdy lokalny dla wątku rozmiar danych jest podzielny przez rozmiar kroku. W sytuacji gdy rozmiar kroku przekracza tę wartość, potrzebny jest nowy podział. Rozwiązanie zastosowane w tej implementacji jest proste. Dla każdego kroku następuje podział danych na tablicę przechowującą wartośći o indeksach  parzystych oraz drugą z indeksami nieparzystymi. Obliczenia wykonywane są jak dotychczas i dane zwracane są do jednego wątku aby można było powtórzyć proces. Listing \ref{lst:mpi-data-split2} zawiera kod dokonujący tego podziału. Niestety taka operacja wymaga dużej ilości komunikacji pomiędzy wątkami, co odbije się znacznie na ostatecznym wyniku.
 
 \begin{lstfloat}
 \lstset{language=C++}
@@ -1043,12 +1027,12 @@ for (int start = 0; start < size; start += step_size) {
 \label{lst:mpi-data-split2}
 \end{lstfloat}
 
-Przez brak odpowiednich narzędzi do zarządzania podziałem pamięci w strukturach oferowanych przez bibliotekę Distributed Ranges implementacja FFT przy użyciu tego narzędzia okazała się niemożliwa. Korzystając z tej biblioteki można równocześnie wykorzystywać funkcje z MPI, lecz w takim wypadku korzystanie z niej utrudniłoby tylko pracę.
+Przez brak odpowiednich narzędzi do zarządzania podziałem pamięci w strukturach oferowanych przez bibliotekę Distributed Ranges implementacja FFT przy użyciu tego narzędzia okazała się niemożliwa. Korzystając z tej biblioteki można równocześnie używać funkcji z MPI, lecz w takim wypadku utrudniłoby to niepotrzebnie pracę.
 
-Ostatnią rzeczą o której warto wspomnieć jest użycie pamięci. Pomimo, że nie ma ono wpływu na długość działania programu to implementacja MPI zużywa dwukrotnie więcej pamięci operacyjnej ze względu na konieczność podziału na podzadania z jednoczesnym utrzymaniem całego zbioru danych w jednym z procesów.
+Ostatnią rzeczą, o której warto wspomnieć jest użycie pamięci. Pomimo, że nie ma ono wpływu na długość działania programu, to implementacja MPI zużywa dwukrotnie więcej pamięci operacyjnej ze względu na konieczność podziału na podzadania z jednoczesnym utrzymaniem całego zbioru danych w jednym z procesów.
 
 \subsection{Ostateczny czas wykonania - komentarz}
-Rysunek \ref{fig:wykonanie-fft} zawiera czas wykonania pełnego algorytmu. Na tym wykresie widać, że implementacja z użyciem modelu MPI dała o wiele lepszy wynik niż implementacja SYCL nawet pomimo dużej potrzeby komunikacji w końcowej fazie wykonywania algorytmu. Faktem jest jednak, że napisanie tego programu było o wiele łatwiejsze oraz zajęło mniej czasu używając SYCL.
+Rysunek \ref{fig:wykonanie-fft} zawiera czas wykonania pełnego algorytmu. Na tym wykresie widać, że implementacja z użyciem modelu MPI dała o wiele lepszy wynik niż implementacja SYCL nawet pomimo dużej potrzeby komunikacji w końcowej fazie wykonywania algorytmu. Pomimo to, napisanie tego programu używając SYCL było o wiele łatwiejsze i zajeło dużo mniej czasu.
 
 \begin{figure}
 	\centering
@@ -1058,16 +1042,16 @@ Rysunek \ref{fig:wykonanie-fft} zawiera czas wykonania pełnego algorytmu. Na ty
 \end{figure}
 
 \chapter{Porównanie łatwości w użyciu}
-W tym rozdziale zawarta została subiektywna opinia opisana z perspektywy osoby która po raz pierwszy używałą każdego z opisanych narzędzi. Pominięta została kwestia wydajności poszczególnych rozwiązań i skupiono się jedynie na łatwości w użyciu.
+W tym rozdziale zawarto subiektywną opinię opisaną z perspektywy osoby, która po raz pierwszy używała każdego z opisanych narzędzi. Kwestia wydajności poszczególnych rozwiązań jest pomijana i skupiono się jedynie na łatwości w użyciu.
 
-Implementacja równoległych rozwiązań w MPI okazała się najtrudniejsza, co jest wynikiem przewidywalnym. MPI daje pełną kontrolę nad podziałem pamięci, i nad sposobem komunikacji pomiędzy poszczególnymi procesami. Przez to łatwo jest popełnić drobne, trudne do znalezienia błędy związane z zarządzaniem tymi cechami programu. Ilość napisanych linijek kodu jest o wiele większa od pozostałych rozwiązań. Model MPI wymaga dobrego zrozumienia oraz dużej wiedzy na temat poprawnych praktyk aby pisać kod dobrej jakości, który w dodatku jest wydajny.
+Implementacja równoległych rozwiązań w MPI okazała się najtrudniejsza, co jest wynikiem przewidywalnym. MPI daje pełną kontrolę nad podziałem pamięci i nad sposobem komunikacji pomiędzy poszczególnymi procesami. Przez to łatwo jest popełnić drobne, trudne do znalezienia błędy związane z zarządzaniem tymi elementami programu. Liczba napisanych linijek kodu jest o wiele większa od pozostałych rozwiązań. Model MPI wymaga dobrego zrozumienia oraz dużej wiedzy na temat poprawnych praktyk aby pisać kod dobrej jakości, który w dodatku jest wydajny.
 
-Pisanie kodu w SYCL jest w porównaniu do MPI dość przyjemne i szybkie. Model wymagał jednak pewnego rodzaju początkowego obeznania, gdyż wprowadza wiele specyficznych metod tworzenia oprogramowania, które nie są od początku intuicyjne. Jako dobre wprowadzenie do SYCL możnaby polecić książkę \cite{sycl-book} która bardzo dobrze wyjaśnia zarówno podstawowe techniki jak i te bardziej zaawansowane. Narzędzie było na tyle wygodne, że zostało wykorzystane przy tworzeniu programów do generacji danych wejściowych zarówno dla metody gradientu sprzężonego jak i szybkiej transformaty Fouriera.
+Pisanie kodu w SYCL jest w porównaniu do MPI przyjemne i szybkie. Model wymagał jednak pewnego rodzaju początkowego obeznania, gdyż wprowadza wiele specyficznych metod tworzenia oprogramowania, które nie są od początku intuicyjne. Jako dobre wprowadzenie do SYCL można polecić książkę \cite{sycl-book}, która bardzo dobrze wyjaśnia zarówno podstawowe techniki, jak i te bardziej zaawansowane. Narzędzie było na tyle wygodne, że wykorzystano je przy tworzeniu programów do generacji danych wejściowych zarówno dla metody gradientu sprzężonego jak i szybkiej transformaty Fouriera.
 
-Distributed Ranges po raz kolejny jest trudnym przypadkiem do opisania, braki w funkcjonalnościach przestrzeni nazw \emph{mhp} uniemożliwiają, efektywne wprowadzenie biblioteki do jakiegokolwiek większego projektu. Jeżeli chcemy użyć struktur danych zawartych w bibliotece, wymuszony zostaje rodzaj pracy podobny do tego w MPI lecz bardziej ograniczony co widać w implementacji metody gradientu sprzężonego. Widocznym jest jednak, że narzędzie ma duży potencjał. Funkcje które są obecnie zaimplementowane są bardzo łatwe i intuicyjne w użyciu. Praca ze strukturami prawie nie rózni się od pracy z biblioteką \emph{<ranges>} ze standardu C++20. Jednym wynikającym z równoległej natury biblioteki problemem jest brak możliwości przekazywania referencji do wyrażeń lambda używanych w pracy z widokami, co w przypadku \emph{<ranges>} jest bardzo użyteczne. Podobne zachowanie można zaobserwować w SYCL, który jest eksploatowany przez Distributed Ranges. Ciekawym jest w jaki sposób narzędzie będzie się rozwijało dalej. Za naturalną ścieżkę rozwoju możnaby uznać przeniesienie funkcjonalności z przestrzeni \emph{shp,} takich jak funkcji mnożenia macierzy przez wektor, do części \emph{mhp.}
+Distributed Ranges po raz kolejny jest trudnym przypadkiem do opisania, braki w funkcjonalnościach przestrzeni nazw \emph{mhp} uniemożliwiają, efektywne wprowadzenie biblioteki do jakiegokolwiek większego projektu. Jeżeli chcemy użyć struktur danych zawartych w bibliotece, wymuszony zostaje rodzaj pracy podobny do tego w MPI, lecz bardziej ograniczony, co widać w implementacji metody gradientu sprzężonego. Narzędzie, pomimo wad ma jednak duży potencjał. Funkcje, które są obecnie zaimplementowane są bardzo intuicyjne w użyciu. Praca ze strukturami prawie nie różni się od pracy z biblioteką \emph{<ranges>} ze standardu C++20. Wynikającym z równoległej natury biblioteki problemem jest brak możliwości przekazywania referencji do wyrażeń lambda używanych w pracy z widokami, co w przypadku \emph{<ranges>} jest bardzo użyteczne. Podobne zachowanie można zaobserwować w SYCL, który jest eksploatowany przez Distributed Ranges. Ciekawe jest, w jaki sposób narzędzie będzie się rozwijało dalej. Za naturalną ścieżkę rozwoju możnaby uznać przeniesienie funkcjonalności z przestrzeni \emph{shp,} takich jak funkcji mnożenia macierzy przez wektor, do części \emph{mhp.}
 
 \chapter{Porównanie wydajności}
-Wyniki badania wydajności metody Monte Carlo są pokazane na wykresie na Rysunku \ref{fig:monte-carlo-speedup}. Wykres ten pokazuje przyspieszenie w zależności od ilości wątków. Każdy z programów był kompilowany z użyciem flagi \emph{"-O1"} po to, aby kompilator nie używał automatycznej wektoryzacji. Jak widać na wykresie, różnice pomiędzy przyspieszeniem uzyskanym dla poszczególnych implementacji są niewielkie. Niewielką przewagę nad pozostałymi uzyskał SYCL, szczególnie dobrze zdaje się on radzić sobie z wykorzystaniem wielowątkowości współbieżnej często dostępnej w nowoczesnych procesorach. Odwrotną sytuację widzimy w przypadku biblioteki Distributed Ranges. Dla tego rozwiązania przyspieszenie uzyskane dla 6 wątków, nie różni się w istotny sposób przpadku z 12 użytymi wątkami.
+Wyniki badania wydajności metody Monte Carlo są pokazane na rysunku \ref{fig:monte-carlo-speedup}. Wykres ten pokazuje przyspieszenie w zależności od ilości wątków. Każdy z programów był kompilowany z użyciem flagi \emph{"-O1"} po to, aby kompilator nie używał automatycznej wektoryzacji. Jak widać na wykresie, różnice pomiędzy przyspieszeniem uzyskanym dla poszczególnych implementacji są niewielkie. Niewielką przewagę nad pozostałymi uzyskał SYCL, szczególnie dobrze zdaje się on radzić sobie z wykorzystaniem wielowątkowości współbieżnej często dostępnej w nowoczesnych procesorach. Odwrotną sytuację widzimy w przypadku biblioteki Distributed Ranges. Dla tego rozwiązania przyspieszenie uzyskane dla 6 wątków, nie różni się w istotny sposób przpadku z 12 użytymi wątkami.
 
 \begin{figure}
 	\centering
@@ -1076,7 +1060,7 @@ Wyniki badania wydajności metody Monte Carlo są pokazane na wykresie na Rysunk
 	\label{fig:monte-carlo-speedup}
 \end{figure}
 
-Metoda CG uzyskała niewielkie przyspieszenie pokazane na Rysunku \ref{fig:cg-speedup}. W przypadku uruchomienia programu MPI z użyciem jednego wątku wynik wyglądał gorzej, niż ten uzyskany przez implementację sekwencyjną. poprawił się do poziomu ponad dwukrotnego przyspieszenie przy użyciu czterech wątków jednak później zaczął spadać. SYCL spisał się jeszcze gorzej uzyskując prawidłowe przyspieszenie dla 2 wątków i schodząc coraz niżej wraz ze wzrostem ich liczby. Metoda gradientu sprzężonego jest w głównej swojej części metodą sekwencyjną. Nie można było się spodziewać dużej zmiany. Być może wynik mógłby zostać polepszony poprzez użycie wektoryzacji operacji podczas mnożenia macierzy przez wektor lub zastosowanie wersji algorytmu która jest stworzona do zrównoleglania.
+Metoda CG uzyskała niewielkie przyspieszenie pokazane na rysunku \ref{fig:cg-speedup}. W przypadku uruchomienia programu MPI z użyciem jednego wątku wynik wyglądał gorzej, niż ten uzyskany przez implementację sekwencyjną. Poprawił się do poziomu ponad dwukrotnego przyspieszenie przy użyciu czterech wątków jednak później zaczął spadać. SYCL spisał się jeszcze gorzej, uzyskując prawidłowe przyspieszenie dla 2 wątków i schodząc coraz niżej wraz ze wzrostem ich liczby. Metoda gradientu sprzężonego jest w głównej swojej części metodą sekwencyjną. Nie można było się spodziewać dużej zmiany. Być może wynik mógłby zostać poprawiony poprzez użycie wektoryzacji operacji podczas mnożenia macierzy przez wektor lub zastosowanie wersji algorytmu która jest stworzona do zrównoleglania.
 
 \begin{figure}
 	\centering
@@ -1085,7 +1069,7 @@ Metoda CG uzyskała niewielkie przyspieszenie pokazane na Rysunku \ref{fig:cg-sp
 	\label{fig:cg-speedup}
 \end{figure}
 
-Rysunek \ref{fig:fft-speedup} obrazuje wyniki testów implementacji szybkiej transformacji Fouriera. Ze względu na błędy obliczeniowe powstałe przy uruchamianiu programu z użyciem mniej niż czterech wątków, linia na wykresie reprezentująca MPI jest skrócona. Przyspieszenie zostało obliczone względem wyniku uzyskanego przez program sekwencyjny. Obie implementacje uzyskały drobne przyspieszenie. W przypadku MPI, implementacja uzyskała bardzo dobry wynik dla czterech wątków, złożyło się na to kilka czynników. Cztery jest potęgą liczby dwa co bardzo upraszcza podział danych. Ponadto, przez zmniejszenie liczby wątków zmniejsza się wymagana ilość komunikacji między wątkami. To wszystko składa się na wynik widoczny na wykresie. Słaby wynik uzyskany przez SYCL wynika zapewne z naiwnej implementacji która może zostać usprawniona użyciem innej wersji algorytmu lub lepszym zarządzaniem danymi.
+Rysunek \ref{fig:fft-speedup} obrazuje wyniki testów implementacji szybkiej transformacji Fouriera. Ze względu na błędy obliczeniowe powstałe przy uruchamianiu programu z użyciem mniej niż czterech wątków, linia na wykresie reprezentująca MPI jest skrócona. Przyspieszenie obliczono względem wyniku uzyskanego przez program sekwencyjny. Obie implementacje uzyskały drobne przyspieszenie. W przypadku MPI, implementacja uzyskała bardzo dobry wynik dla czterech wątków. Złożyło się na to kilka czynników. Cztery jest potęgą liczby dwa co bardzo upraszcza podział danych. Ponadto, przez zmniejszenie liczby wątków zmniejsza się wymagana ilość komunikacji między wątkami. To wszystko składa się na wynik widoczny na wykresie. Słaby poziom uzyskany przez SYCL jest zapewne efektem naiwnej implementacji, która może zostać usprawniona użyciem innej wersji algorytmu lub lepszym zarządzaniem danymi.
 
 \begin{figure}
 	\centering
@@ -1095,12 +1079,12 @@ Rysunek \ref{fig:fft-speedup} obrazuje wyniki testów implementacji szybkiej tra
 \end{figure}
 
 \section{Wnioski}
-Programowanie równoległe jest bardzo trudną sztuką wymagającą dobrego panowania nad zasobami komputera. Przedstawione wyniki potwierdzają, że o ile łatwe problemy można rozwiązać w stosunkowo prosty sposób używając każdego z wymienionych narzędzi, to bardziej skomplikowane algorytmy wymagają od nas kontroli nawet korzystając z opcji mających na celu ułatwienie tego procesu. Pomimo włożonych starań, biblioteka Distributed Ranges była użyteczna tylko w przypadku całkowania metodą Monte Carlo którą można uznać za problem trywialny. Przy zadaniach o większym poziomie trudności niekompletność narzędzia była blokadą nie do przejścia. MPI wypadł w tym zestawieniu wydajności przyzwoicie na tle konkurentów, jednak to SYCL był najłatwiejszy w użyciu. Pewnym jest, że przedstawione implementacje mogą być przekształcone w bardziej wydajne i da się uzyskać wynik lepszy od tego otrzymanego w tym projekcie. Jeden rok nie jest wystarczającym czasem aby poznać wszystkie tajniki tych bogatych w funkcjonalności Modeli. 
+Programowanie równoległe jest bardzo trudną sztuką wymagającą dobrego panowania nad zasobami komputera. Przedstawione wyniki potwierdzają, że o ile łatwe problemy można rozwiązać w stosunkowo prosty sposób używając każdego z wymienionych narzędzi, to bardziej skomplikowane algorytmy wymagają od nas kontroli nawet korzystając z opcji mających na celu ułatwienie tego procesu. Pomimo włożonych starań, biblioteka Distributed Ranges była użyteczna tylko w przypadku całkowania metodą Monte Carlo którą można uznać za problem trywialny. Przy zadaniach o większym poziomie trudności niekompletność narzędzia była blokadą nie do przejścia. MPI wypadł w tym zestawieniu wydajności korzystnie na tle konkurentów, jednak to SYCL był najłatwiejszy w użyciu. Pewnym jest, że przedstawione implementacje mogą być przekształcone w bardziej wydajne i da się uzyskać wynik lepszy od tego otrzymanego w tym projekcie. Jeden rok nie jest wystarczającym czasem aby poznać wszystkie tajniki tych bogatych w funkcjonalności modeli. 
 
 
 \chapter*{Podsumowanie}
 \addcontentsline{toc}{chapter}{Podsumowanie}
-Patrząc na wyniki testów można wyciągnąć kilka wniosków. Każde z przedstawionych narzędzi ma swoje konkretne zastosowanie. MPI jest od wielu lat standardem w programowaniu systemów wykorzystujących pamięć rozproszoną. Ten model jest także najbardziej wydajny z opisanych w tej pracy ponieważ daje użytkownikowi największą kontrolę nad zasobami komputera. Niestety wysokie możliwości przychodzą kosztem konieczności zdobycia dużej wiedzy oraz wprawy aby wykorzystać to narzędzie poprawnie. Odpowiedzią na ten problem jest SYCL. To narzędzie pomimo, że nie jest wstanie operować pamięcią rozproszoną, w miarę wydajnie radzi sobie z programowaniem równoległym korzystając z pamięci wspólnej. Ta warstwa abstrakcji pozostaje przy tym bardzo wygodna i łatwa w użyciu zapewniając intuitywne funkcje umożliwiające wysoce produktywną pracę. Distributed Ranges pomimo oczywistej potrzeby rozwoju oraz wprowadzenia wielu poprawek jest narzędziem które oferuje szybki dostęp do operacji równoległych za pośrednictwem SYCL w przestrzeni nazw \emph{shp}. Niestety, jak widać w wynikach testów, część wykorzystująca MPI nie jest jeszcze gotowa do eksploatacji w większej skali. Wiele kluczowych funkcji nie jest zaimplementowane, a te które istnieją potrafią być problematyczne. Jednakże jeżeli \emph{mph} nadal będzie rozwijana to ma potencjał na połączenie możliwości programowania z pamięcią rozproszoną znanej z MPI oraz łatwości i produktywności jaką oferuje SYCL oraz biblioteka \emph{<ranges>} z C++20. Aby jeszcze dokładniej określić zależności między przedstawionymi narzędziami, odpowiednim krokiem byłaby implementacja rozwiązań kolejnych problemów bądź użycie wyspecjalizowanych algorytmów do rozwiązania tych opisanych w tej pracy.
+Patrząc na wyniki testów można wyciągnąć kilka wniosków. Każde z przedstawionych narzędzi ma swoje konkretne zastosowanie. MPI jest od wielu lat standardem w programowaniu systemów wykorzystujących pamięć rozproszoną. Spośród opisanych w pracy, ten model jest także najbardziej wydajny ponieważ daje użytkownikowi największą kontrolę nad zasobami komputera. Niestety, wysokie możliwości przychodzą kosztem konieczności zdobycia dużej wiedzy oraz obycia aby wykorzystać to narzędzie poprawnie. Odpowiedzią na ten problem jest SYCL. To narzędzie, mimo, że nie jest wstanie operować pamięcią rozproszoną, dość wydajnie radzi sobie z programowaniem równoległym korzystając z pamięci wspólnej. Ta warstwa abstrakcji pozostaje przy tym bardzo wygodna i łatwa w użyciu, zapewniając proste w użyciu funkcje umożliwiające wysoce produktywną pracę. Distributed Ranges, pomimo oczywistej potrzeby rozwoju oraz wprowadzenia wielu poprawek, jest narzędziem które oferuje szybki dostęp do operacji równoległych za pośrednictwem SYCL w przestrzeni nazw \emph{shp}. Niestety, jak widać w wynikach testów, część wykorzystująca MPI nie jest jeszcze gotowa do eksploatacji w większej skali. Wiele kluczowych funkcji nie jest zaimplementowane, a te, które istnieją, potrafią być problematyczne. Jednak jeżeli \emph{mph} nadal będzie rozwijana, to ma potencjał na połączenie możliwości programowania z pamięcią rozproszoną znanej z MPI oraz łatwości i produktywności jaką oferuje SYCL oraz biblioteka \emph{<ranges>} z C++20. Aby jeszcze dokładniej określić zależności między przedstawionymi narzędziami, odpowiednim krokiem byłaby implementacja rozwiązań kolejnych problemów bądź użycie wyspecjalizowanych algorytmów do rozwiązania tych opisanych w tej pracy.
 
 
 \listof{lstfloat}{Spis listingów} % jeśli są listingi
