@@ -66,7 +66,6 @@ void fft(Complex *input_array, unsigned long size) {
         omega_power *= omega;
       }
     }
-    std::cout << "Step " << i << " " << input_array[0] << '\n';
   }
 
   auto end = std::chrono::high_resolution_clock::now();
@@ -79,7 +78,7 @@ int main(int argc, char *argv[]) {
   unsigned long input_size;
   Complex *input_array;
 
-  std::ifstream inputFile("../../TEST_DATA/FFT_test_vector", std::ios::binary);
+  std::ifstream inputFile("./TEST_DATA/FFT_test_vector", std::ios::binary);
   if (!inputFile.is_open()) {
     std::cerr << "Error: Failed to open file for reading.\n";
     return -1;

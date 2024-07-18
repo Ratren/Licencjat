@@ -92,10 +92,6 @@ template <dr::distributed_range X> double norm(X &&vec) {
 template <dr::distributed_range X, dr::distributed_range Y>
 void matrix_vector_multiply(X &&mat, std::vector<double> &vec, Y &&result,
                             int size) {
-  if (mhp::rank() == 0) {
-    std::cout << "b\n";
-  }
-
   auto segment = mat.segments()[mhp::rank()];
   int rows_in_segment = size / mhp::nprocs();
   std::vector<double> result_vec(rows_in_segment, 0);
@@ -108,10 +104,6 @@ void matrix_vector_multiply(X &&mat, std::vector<double> &vec, Y &&result,
   segment = result.segments()[mhp::rank()];
   for (int i = 0; i < rows_in_segment; ++i) {
     segment[i] = result_vec[i];
-  }
-
-  if (mhp::rank() == 0) {
-    std::cout << "e\n";
   }
 
   mhp::barrier();
@@ -136,9 +128,6 @@ void conjugate_gradient(X &&A, Y &&B, Z &&_X) {
   mhp::barrier();
 
   while (old_resid_norm > tolerance) {
-    if (mhp::rank() == 0) {
-      fmt::print("{}\n", old_resid_norm);
-    }
     matrix_vector_multiply(A, search_dir, A_search_dir, size);
 
     alpha = old_resid_norm * old_resid_norm /
@@ -165,7 +154,7 @@ int main(int argc, char **argv) {
   MPI_Status status;
   MPI_File fh;
   int file_open_error =
-      MPI_File_open(MPI_COMM_WORLD, "../../../../TEST_DATA/CG_test_matrix",
+      MPI_File_open(MPI_COMM_WORLD, "./TEST_DATA/CG_test_matrix",
                     MPI_MODE_RDONLY, MPI_INFO_NULL, &fh);
   if (file_open_error != MPI_SUCCESS) {
     MPI_Abort(MPI_COMM_WORLD, file_open_error);
@@ -180,9 +169,6 @@ int main(int argc, char **argv) {
   mhp::barrier();
 
   int total_data_size = total_number_of_bytes / sizeof(double);
-  if (mhp::rank() == 0) {
-    std::cout << total_data_size << '\n';
-  }
   mhp::distributed_vector<double> A(total_data_size);
 
   int local_data_size = local_number_of_bytes / sizeof(double);
@@ -200,7 +186,7 @@ int main(int argc, char **argv) {
 
   // READ VECTOR
   file_open_error =
-      MPI_File_open(MPI_COMM_WORLD, "../../../../TEST_DATA/CG_test_vector",
+      MPI_File_open(MPI_COMM_WORLD, "./TEST_DATA/CG_test_vector",
                     MPI_MODE_RDONLY, MPI_INFO_NULL, &fh);
   if (file_open_error != MPI_SUCCESS) {
     MPI_Abort(MPI_COMM_WORLD, file_open_error);
@@ -213,9 +199,6 @@ int main(int argc, char **argv) {
   mhp::barrier();
 
   total_data_size = total_number_of_bytes / sizeof(double);
-  if (mhp::rank() == 0) {
-    std::cout << total_data_size << '\n';
-  }
   mhp::distributed_vector<double> B(total_data_size);
   local_data_size = local_number_of_bytes / sizeof(double);
   local_data = new double[local_data_size];
@@ -239,7 +222,6 @@ int main(int argc, char **argv) {
 
   if (mhp::rank() == 0) {
     t_start = MPI_Wtime();
-    std::cout << "start\n";
   }
 
   conjugate_gradient(A, B, X);

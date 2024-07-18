@@ -51,7 +51,7 @@ int main(int argc, char* argv[]) {
   uint32_t seed = std::stoll(argv[2]);
   std::vector<Complex> array = generate_input_array(size, seed);
 
-  std::ofstream outputFile("../../../TEST_DATA/FFT_test_vector", std::ios::binary);
+  std::ofstream outputFile("./TEST_DATA/FFT_test_vector", std::ios::binary);
   if (!outputFile.is_open()) {
     std::cerr << "Error: Failed to open file for writing." << std::endl;
     return -1;

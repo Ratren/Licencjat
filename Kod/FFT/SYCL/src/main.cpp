@@ -141,7 +141,7 @@ int main(int argc, char *argv[]) {
   std::vector<Complex> array;
   size_t size = std::pow(2, 29);
 
-  std::ifstream inputFile("../../../TEST_DATA/FFT_test_vector",
+  std::ifstream inputFile("./TEST_DATA/FFT_test_vector",
                           std::ios::binary);
   if (!inputFile.is_open()) {
     std::cerr << "Error: Failed to open file for reading.\n";

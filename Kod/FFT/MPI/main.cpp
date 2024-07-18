@@ -103,7 +103,7 @@ int main(int argc, char **argv) {
   Complex *global_array;
 
   if (rank == 0) {
-    std::ifstream inputFile("../../TEST_DATA/FFT_test_vector",
+    std::ifstream inputFile("./TEST_DATA/FFT_test_vector",
                             std::ios::binary);
     if (!inputFile.is_open()) {
       std::cerr << "Error: Failed to open file for reading.\n";
@@ -122,7 +122,7 @@ int main(int argc, char **argv) {
   num_bits = log2(size);
 
   if (rank == 0) {
-    std::ifstream inputFile("../../TEST_DATA/FFT_test_vector",
+    std::ifstream inputFile("./TEST_DATA/FFT_test_vector",
                             std::ios::binary);
     if (!inputFile.is_open()) {
       std::cerr << "Error: Failed to open file for reading.\n";

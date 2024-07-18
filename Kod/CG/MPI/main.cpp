@@ -21,7 +21,7 @@ int read_data_from_files(double *&matrix, double *&vector, int rank, int root,
   double *fullArray = nullptr;
 
   if (rank == root) {
-    std::ifstream vectorFile("../../TEST_DATA/CG_test_vector",
+    std::ifstream vectorFile("./TEST_DATA/CG_test_vector",
                              std::ios::binary);
     if (!vectorFile.is_open()) {
       std::cerr << "Error: Failed to open vector file for reading.\n";
@@ -49,7 +49,7 @@ int read_data_from_files(double *&matrix, double *&vector, int rank, int root,
   if (rank == root) {
     delete[] fullArray;
 
-    std::ifstream matrixFile("../../TEST_DATA/CG_test_matrix",
+    std::ifstream matrixFile("./TEST_DATA/CG_test_matrix",
                              std::ios::binary);
     if (!matrixFile.is_open()) {
       std::cerr << "Error: Failed to open matrix file for reading.\n";

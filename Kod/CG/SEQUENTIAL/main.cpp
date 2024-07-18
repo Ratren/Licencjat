@@ -12,7 +12,7 @@ using vec = std::vector<double>;
 int read_data_from_files(vec &matrix, vec &vector) {
   int size;
 
-  std::ifstream vectorFile("../../TEST_DATA/CG_test_vector", std::ios::binary);
+  std::ifstream vectorFile("./TEST_DATA/CG_test_vector", std::ios::binary);
   if (!vectorFile.is_open()) {
     std::cerr << "Error: Failed to open vector file for reading.\n";
     return -1;
@@ -24,15 +24,13 @@ int read_data_from_files(vec &matrix, vec &vector) {
 
   size = fileSize / sizeof(double);
 
-  std::cout << size << '\n';
-
   vector.resize(size);
   matrix.resize(size * size);
 
   vectorFile.read(reinterpret_cast<char *>(vector.data()), fileSize);
   vectorFile.close();
 
-  std::ifstream matrixFile("../../TEST_DATA/CG_test_matrix", std::ios::binary);
+  std::ifstream matrixFile("./TEST_DATA/CG_test_matrix", std::ios::binary);
   if (!matrixFile.is_open()) {
     std::cerr << "Error: Failed to open matrix file for reading.\n";
     return -1;
@@ -84,8 +82,6 @@ vec conjugate_gradient(const vec &A, const vec &B) {
 
   while (old_resid_norm > tolerance) {
     vec A_search_dir = matrix_vector_multiply(A, search_dir);
-
-    std::cout << old_resid_norm << '\n';
 
     double alpha = old_resid_norm * old_resid_norm /
                    inner_product(search_dir, A_search_dir);

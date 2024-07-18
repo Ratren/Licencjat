@@ -71,7 +71,7 @@ int main(int argc, char *argv[]) {
   generate_mat(matrix, size, seed_m);
   generate_vec(vector, size, seed_v);
 
-  std::ofstream matrixFile("../../../TEST_DATA/CG_test_matrix", std::ios::binary);
+  std::ofstream matrixFile("./TEST_DATA/CG_test_matrix", std::ios::binary);
   if (!matrixFile.is_open()) {
     std::cerr << "Error: Failed to open matrix file for writing." << std::endl;
     return -1;
@@ -81,7 +81,7 @@ int main(int argc, char *argv[]) {
                    size * size * sizeof(double));
   matrixFile.close();
 
-  std::ofstream vectorFile("../../../TEST_DATA/CG_test_vector", std::ios::binary);
+  std::ofstream vectorFile("./TEST_DATA/CG_test_vector", std::ios::binary);
   if (!vectorFile.is_open()) {
     std::cerr << "Error: Failed to open vector file for writing." << std::endl;
     return -1;
